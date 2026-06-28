@@ -176,6 +176,29 @@ app.get('/api/books/:id', requireAuth, (req, res) => {
   }
 });
 
+
+
+// PUT /api/books/:id — update a book
+app.put('/api/books/:id', requireAuth, (req, res) => {
+  const { title, author, genre, rating, finished, review, notes } = req.body;
+  if (!title || !author) return res.status(400).json({ error: 'Title and author are required.' });
+  try {
+    db.prepare(`UPDATE books SET title=?, author=?, genre=?, rating=?, finished=?, review=?, notes=? WHERE id=?`)
+      .run(title, author, genre||null, rating ? parseInt(rating,10) : null,
+           finished === 'true' || finished === true || finished === 1 ? 1 : 0,
+           review||null, notes||null, req.params.id);
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: 'Could not update book.' }); }
+});
+
+// DELETE /api/books/:id — delete a book
+app.delete('/api/books/:id', requireAuth, (req, res) => {
+  try {
+    db.prepare('DELETE FROM books WHERE id=?').run(req.params.id);
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: 'Could not delete book.' }); }
+});
+
 // ── App HTML (protected) ────────────────────────────────────────────────────
 
 app.get('/app', requireAuth, (req, res) => {

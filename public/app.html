@@ -8,217 +8,219 @@
 </head>
 <body>
 
-<!-- ── Header ──────────────────────────────────────────────────────────── -->
 <header class="site-header">
-  <h1>Jean's Book Club 📚</h1>
-  <button class="logout-btn" id="logout-btn">Sign Out</button>
+  <div class="header-inner">
+    <div class="header-title">📚 Jean's Book Club</div>
+    <button class="btn-signout" id="logout-btn">Sign Out</button>
+  </div>
 </header>
 
-<!-- ── Main ────────────────────────────────────────────────────────────── -->
 <div class="page-wrap">
 
-  <!-- ═══════════════════════════════════════════════════════════
-       LIBRARY VIEW
-  ════════════════════════════════════════════════════════════════ -->
+  <!-- ── LIBRARY VIEW ── -->
   <div id="view-library">
-
-    <div class="add-book-area">
-      <button class="btn btn-primary" id="add-book-btn" style="font-size:1.3rem;">
-        ➕ &nbsp;Add a Book
-      </button>
+    <div class="toolbar">
+      <button class="btn btn-primary" id="add-book-btn">➕ Add a Book</button>
+      <span class="book-count-label" id="book-count"></span>
     </div>
 
     <div id="library-error" class="error-msg"></div>
 
-    <!-- Book journal list view -->
-    <div id="book-list-wrap" style="display:none;">
-      <div class="book-list-header">
-        <h2 class="book-list-heading">📚 All Your Books</h2>
-        <p class="book-count" id="book-count"></p>
+    <!-- Data Grid -->
+    <div id="grid-wrap" style="display:none;">
+      <div class="grid-scroll">
+        <table class="grid-table" id="grid-table">
+          <thead>
+            <tr>
+              <th class="col-cover">Cover</th>
+              <th class="col-title">Title</th>
+              <th class="col-author">Author</th>
+              <th class="col-genre">Genre</th>
+              <th class="col-rating">Rating</th>
+              <th class="col-fin">Finished?</th>
+              <th class="col-review">Jean's Review</th>
+              <th class="col-desc">About the Book</th>
+              <th class="col-bio">About the Author</th>
+              <th class="col-fact">Fun Fact 1</th>
+              <th class="col-fact">Fun Fact 2</th>
+              <th class="col-notes">Notes</th>
+              <th class="col-date">Date Added</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="grid-body"></tbody>
+        </table>
       </div>
-      <div id="book-list"></div>
     </div>
 
     <div id="empty-library" class="empty-library" style="display:none;">
-      <div class="big-icon">📖</div>
-      <p>No books yet!<br>Tap "Add a Book" to get started.</p>
+      <div class="empty-icon">📖</div>
+      <p>No books yet! Add your first book above.</p>
+    </div>
+  </div>
+
+  <!-- ── ADD BOOK WIZARD ── -->
+  <div id="view-wizard" style="display:none;">
+    <div class="wizard-header">
+      <button class="btn-back" id="wizard-back">← Back to My Books</button>
     </div>
 
-  </div><!-- /view-library -->
-
-
-  <!-- ═══════════════════════════════════════════════════════════
-       WIZARD VIEW
-  ════════════════════════════════════════════════════════════════ -->
-  <div id="view-wizard" style="display:none;" class="wizard-wrap">
-
-    <!-- Step indicator -->
-    <div class="step-indicator-full" id="step-indicator">
-      <div class="step-track">
-        <div class="step-circle" id="sc-1">1</div>
-        <div class="step-line" id="sl-1"></div>
-        <div class="step-circle" id="sc-2">2</div>
-        <div class="step-line" id="sl-2"></div>
-        <div class="step-circle" id="sc-3">3</div>
-      </div>
-      <div class="step-labels">
-        <span id="slbl-1">Title</span>
-        <span class="lbl-gap"></span>
-        <span id="slbl-2">Preview</span>
-        <span class="lbl-gap"></span>
-        <span id="slbl-3">Review</span>
-      </div>
+    <!-- Step dots -->
+    <div class="step-dots">
+      <div class="step-dot active" id="dot-1"></div>
+      <div class="step-line"></div>
+      <div class="step-dot" id="dot-2"></div>
+      <div class="step-line"></div>
+      <div class="step-dot" id="dot-3"></div>
     </div>
 
-    <!-- ─── Step 1: Title + Author ─────────────────────────────── -->
+    <!-- Step 1 -->
     <div class="wizard-step active" id="step-1">
-      <h2 class="step-header">What book are you adding?</h2>
-      <div id="step1-error" class="error-msg"></div>
-
+      <h2>What book are you adding?</h2>
+      <div class="error-msg" id="step1-error"></div>
       <div class="form-group">
         <label for="book-title">Book Title</label>
-        <input type="text" id="book-title" name="book-title"
-          placeholder="e.g. The Great Gatsby"
-          autocomplete="off" autocorrect="off" spellcheck="false">
+        <input type="text" id="book-title" placeholder="e.g. The Great Gatsby">
       </div>
-
       <div class="form-group">
-        <label for="book-author">Author</label>
-        <input type="text" id="book-author" name="book-author"
-          placeholder="e.g. F. Scott Fitzgerald"
-          autocomplete="off" autocorrect="off">
+        <label for="book-author">Author Name</label>
+        <input type="text" id="book-author" placeholder="e.g. F. Scott Fitzgerald">
       </div>
-
-      <button class="btn btn-primary" id="lookup-btn" style="font-size:1.25rem;">
-        🔍 &nbsp;Look It Up
-      </button>
-
-      <div class="mt-16">
-        <button class="btn btn-secondary" id="cancel-wizard-1">Cancel</button>
-      </div>
-
-      <!-- Loading overlay -->
+      <button class="btn btn-primary" id="lookup-btn">🔍 Look It Up</button>
       <div class="loading-wrap" id="lookup-loading">
         <div class="spinner"></div>
-        <p class="loading-text">Looking up your book…<br>This takes a few seconds ☕</p>
+        <p>Looking up your book…</p>
       </div>
     </div>
 
-    <!-- ─── Step 2: Enriched Preview ───────────────────────────── -->
+    <!-- Step 2 -->
     <div class="wizard-step" id="step-2">
-      <h2 class="step-header">Here's what I found! 🎉</h2>
-
-      <div id="preview-card" class="preview-card">
-        <!-- Injected by JS -->
-      </div>
-
-      <button class="btn btn-gold" id="to-step3-btn" style="font-size:1.25rem;">
-        ✍️ &nbsp;Write My Review →
-      </button>
-
-      <div class="mt-16">
-        <button class="btn btn-secondary" id="back-to-step1">← Change Book</button>
-      </div>
+      <h2>Here's what I found!</h2>
+      <div id="preview-card" class="preview-card"></div>
+      <button class="btn btn-primary" id="to-step3-btn">✍️ Write My Review</button>
+      <button class="btn btn-secondary" id="back-to-step1" style="margin-top:12px;">← Change Book</button>
     </div>
 
-    <!-- ─── Step 3: Rating + Review ────────────────────────────── -->
+    <!-- Step 3 -->
     <div class="wizard-step" id="step-3">
-      <h2 class="step-header">What did you think?</h2>
-      <div id="step3-error" class="error-msg"></div>
+      <h2>What did you think?</h2>
+      <div class="error-msg" id="step3-error"></div>
 
-      <!-- Star Rating -->
       <div class="form-group">
         <label>Your Rating</label>
-        <div class="stars-row" role="group" aria-label="Star rating">
-          <button class="star-btn" data-rating="1" aria-label="1 star">★</button>
-          <button class="star-btn" data-rating="2" aria-label="2 stars">★</button>
-          <button class="star-btn" data-rating="3" aria-label="3 stars">★</button>
-          <button class="star-btn" data-rating="4" aria-label="4 stars">★</button>
-          <button class="star-btn" data-rating="5" aria-label="5 stars">★</button>
+        <div class="stars-row" id="stars-row">
+          <button class="star-btn" data-rating="1">★</button>
+          <button class="star-btn" data-rating="2">★</button>
+          <button class="star-btn" data-rating="3">★</button>
+          <button class="star-btn" data-rating="4">★</button>
+          <button class="star-btn" data-rating="5">★</button>
         </div>
-        <p style="font-size:0.9rem; color:var(--text-light); margin-top:6px;">
-          Tap the stars to rate this book
-        </p>
       </div>
 
-      <!-- Review Text -->
       <div class="form-group">
         <label for="review-text">What did you think?</label>
-        <textarea
-          id="review-text"
-          placeholder="Tell me what you loved (or didn't love!) about this book…"
-          rows="6"
-        ></textarea>
-        <p style="font-size:0.9rem; color:var(--text-light); margin-top:6px;">
-          Your thoughts — as much or as little as you like!
-        </p>
+        <textarea id="review-text" rows="5" placeholder="Tell me what you thought…"></textarea>
       </div>
 
-      <!-- Finished toggle -->
+      <div class="form-group">
+        <label for="genre-input">Genre <small>(optional)</small></label>
+        <input type="text" id="genre-input" placeholder="e.g. Historical Fiction, Mystery…">
+      </div>
+
+      <div class="form-group">
+        <label for="notes-input">My Notes <small>(optional)</small></label>
+        <textarea id="notes-input" rows="3" placeholder="Anything else to remember…"></textarea>
+      </div>
+
       <div class="form-group">
         <label>Did you finish it?</label>
-        <div class="finished-row">
-          <button class="btn-yes-no" id="finished-yes" data-value="true">✅ &nbsp;Yes!</button>
-          <button class="btn-yes-no" id="finished-no" data-value="false">📖 &nbsp;Not yet</button>
+        <div class="finish-row">
+          <button class="btn-finish" id="finished-yes" data-value="true">✅ Yes!</button>
+          <button class="btn-finish" id="finished-no" data-value="false">📖 Not yet</button>
         </div>
       </div>
 
-
-      <!-- Genre -->
-      <div class="form-group">
-        <label for="genre-input">Genre <span style="font-weight:400;font-size:0.9em;color:#888;">(optional)</span></label>
-        <input type="text" id="genre-input" placeholder="e.g. Historical Fiction, Mystery, Biography…">
-      </div>
-
-      <!-- Notes -->
-      <div class="form-group">
-        <label for="notes-input">Private Notes <span style="font-weight:400;font-size:0.9em;color:#888;">(optional)</span></label>
-        <textarea id="notes-input" rows="3" placeholder="Anything else you want to remember about this book…"></textarea>
-      </div>
-
-      <!-- Save -->
-      <button class="btn btn-primary" id="save-btn" style="margin-top:8px;">
-        💾 &nbsp;Save My Book
-      </button>
-
-      <div class="mt-16">
-        <button class="btn btn-secondary" id="back-to-step2">← Back to Preview</button>
-      </div>
-
-      <!-- Saving indicator -->
+      <button class="btn btn-primary" id="save-btn">💾 Save My Book</button>
       <div class="loading-wrap" id="save-loading">
         <div class="spinner"></div>
-        <p class="loading-text">Saving your book…</p>
+        <p>Saving…</p>
       </div>
     </div>
+  </div>
 
-  </div><!-- /view-wizard -->
+  <!-- ── EDIT MODAL ── -->
+  <div id="edit-overlay" style="display:none;">
+    <div class="edit-modal">
+      <h2>Edit Book</h2>
+      <div class="error-msg" id="edit-error"></div>
+      <input type="hidden" id="edit-id">
+
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="edit-title">
+      </div>
+      <div class="form-group">
+        <label>Author</label>
+        <input type="text" id="edit-author">
+      </div>
+      <div class="form-group">
+        <label>Genre</label>
+        <input type="text" id="edit-genre" placeholder="optional">
+      </div>
+      <div class="form-group">
+        <label>Rating</label>
+        <div class="stars-row" id="edit-stars-row">
+          <button class="star-btn" data-rating="1">★</button>
+          <button class="star-btn" data-rating="2">★</button>
+          <button class="star-btn" data-rating="3">★</button>
+          <button class="star-btn" data-rating="4">★</button>
+          <button class="star-btn" data-rating="5">★</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Finished?</label>
+        <div class="finish-row">
+          <button class="btn-finish" id="edit-finished-yes" data-value="true">✅ Yes</button>
+          <button class="btn-finish" id="edit-finished-no" data-value="false">📖 Not yet</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Jean's Review</label>
+        <textarea id="edit-review" rows="4"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="edit-notes" rows="3"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="edit-save-btn">💾 Save Changes</button>
+        <button class="btn btn-secondary" id="edit-cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
 </div><!-- /page-wrap -->
 
-
 <script>
-// ════════════════════════════════════════════════════════════════
-// State
-// ════════════════════════════════════════════════════════════════
-let currentStep = 1;
+// ── State ────────────────────────────────────────────────────────
 let enrichedData = null;
 let selectedRating = 0;
 let finishedValue = null;
+let editRating = 0;
+let editFinished = null;
 
-// ── Auth check ────────────────────────────────────────────────────────────
-fetch('/auth/status').then(r => r.json()).then(data => {
-  if (!data.loggedIn) window.location.href = '/';
+// ── Auth ─────────────────────────────────────────────────────────
+fetch('/auth/status').then(r => r.json()).then(d => {
+  if (!d.loggedIn) window.location.href = '/';
 });
 
-// ── Logout ────────────────────────────────────────────────────────────────
 document.getElementById('logout-btn').addEventListener('click', async () => {
   await fetch('/auth/logout', { method: 'POST' });
   window.location.href = '/';
 });
 
-// ════════════════════════════════════════════════════════════════
-// View switchers
-// ════════════════════════════════════════════════════════════════
+// ── Views ────────────────────────────────────────────────────────
 function showLibrary() {
   document.getElementById('view-library').style.display = '';
   document.getElementById('view-wizard').style.display = 'none';
@@ -228,98 +230,100 @@ function showLibrary() {
 function showWizard() {
   document.getElementById('view-library').style.display = 'none';
   document.getElementById('view-wizard').style.display = '';
-  // Reset form
-  document.getElementById('book-title').value = '';
-  document.getElementById('book-author').value = '';
-  document.getElementById('review-text').value = '';
-  selectedRating = 0;
-  finishedValue = null;
-  enrichedData = null;
-  document.getElementById('genre-input').value = '';
-  document.getElementById('notes-input').value = '';
-  updateStars(0);
-  clearFinishedSelection();
-  clearError('step1-error');
-  clearError('step3-error');
+  resetWizard();
   gotoStep(1);
 }
 
-// ════════════════════════════════════════════════════════════════
-// Step navigation
-// ════════════════════════════════════════════════════════════════
+document.getElementById('add-book-btn').addEventListener('click', showWizard);
+document.getElementById('wizard-back').addEventListener('click', showLibrary);
+
+// ── Wizard steps ─────────────────────────────────────────────────
 function gotoStep(n) {
-  currentStep = n;
   [1,2,3].forEach(i => {
-    const step = document.getElementById('step-' + i);
-    step.classList.toggle('active', i === n);
-
-    const sc = document.getElementById('sc-' + i);
-    sc.className = 'step-circle';
-    if (i < n) {
-      sc.classList.add('done');
-      sc.textContent = '✓';
-    } else if (i === n) {
-      sc.classList.add('active');
-      sc.textContent = String(i);
-    } else {
-      sc.textContent = String(i);
-    }
-
-    // label
-    const lbl = document.getElementById('slbl-' + i);
-    if (lbl) lbl.className = i === n ? 'active-lbl' : '';
-
-    // connector lines
-    if (i < 3) {
-      const sl = document.getElementById('sl-' + i);
-      if (sl) sl.className = i < n ? 'step-line done' : 'step-line';
-    }
+    document.getElementById('step-' + i).classList.toggle('active', i === n);
+    const dot = document.getElementById('dot-' + i);
+    dot.className = 'step-dot' + (i < n ? ' done' : i === n ? ' active' : '');
   });
-  // scroll to top of wizard
-  document.getElementById('view-wizard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-document.getElementById('add-book-btn').addEventListener('click', showWizard);
-document.getElementById('cancel-wizard-1').addEventListener('click', showLibrary);
+function resetWizard() {
+  document.getElementById('book-title').value = '';
+  document.getElementById('book-author').value = '';
+  document.getElementById('review-text').value = '';
+  document.getElementById('genre-input').value = '';
+  document.getElementById('notes-input').value = '';
+  selectedRating = 0; finishedValue = null; enrichedData = null;
+  updateStars('stars-row', 0);
+  clearFinish('finished-yes', 'finished-no');
+  clearErr('step1-error'); clearErr('step3-error');
+}
+
 document.getElementById('back-to-step1').addEventListener('click', () => gotoStep(1));
-document.getElementById('back-to-step2').addEventListener('click', () => gotoStep(2));
 document.getElementById('to-step3-btn').addEventListener('click', () => gotoStep(3));
 
-// ════════════════════════════════════════════════════════════════
-// Error helpers
-// ════════════════════════════════════════════════════════════════
-function showError(id, msg) {
+// ── Errors ───────────────────────────────────────────────────────
+function showErr(id, msg) {
   const el = document.getElementById(id);
-  el.textContent = msg;
-  el.style.display = 'block';
+  el.textContent = msg; el.style.display = 'block';
 }
-function clearError(id) {
+function clearErr(id) {
   const el = document.getElementById(id);
-  el.textContent = '';
-  el.style.display = 'none';
+  el.textContent = ''; el.style.display = 'none';
 }
 
-// ════════════════════════════════════════════════════════════════
-// Step 1: Look up book
-// ════════════════════════════════════════════════════════════════
+// ── Stars ────────────────────────────────────────────────────────
+function updateStars(rowId, val) {
+  document.querySelectorAll('#' + rowId + ' .star-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.rating) <= val);
+  });
+}
+
+document.querySelectorAll('#stars-row .star-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    selectedRating = parseInt(b.dataset.rating);
+    updateStars('stars-row', selectedRating);
+  });
+});
+
+document.querySelectorAll('#edit-stars-row .star-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    editRating = parseInt(b.dataset.rating);
+    updateStars('edit-stars-row', editRating);
+  });
+});
+
+// ── Finish buttons ───────────────────────────────────────────────
+function clearFinish(yesId, noId) {
+  document.getElementById(yesId).classList.remove('sel');
+  document.getElementById(noId).classList.remove('sel');
+}
+
+['finished-yes','finished-no'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function() {
+    finishedValue = this.dataset.value === 'true';
+    document.getElementById('finished-yes').classList.toggle('sel', finishedValue);
+    document.getElementById('finished-no').classList.toggle('sel', !finishedValue);
+  });
+});
+
+['edit-finished-yes','edit-finished-no'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function() {
+    editFinished = this.dataset.value === 'true';
+    document.getElementById('edit-finished-yes').classList.toggle('sel', editFinished);
+    document.getElementById('edit-finished-no').classList.toggle('sel', !editFinished);
+  });
+});
+
+// ── Step 1 lookup ────────────────────────────────────────────────
 document.getElementById('lookup-btn').addEventListener('click', async () => {
-  clearError('step1-error');
+  clearErr('step1-error');
   const title = document.getElementById('book-title').value.trim();
   const author = document.getElementById('book-author').value.trim();
-
-  if (!title) {
-    showError('step1-error', 'Please enter the book title.');
-    document.getElementById('book-title').focus();
-    return;
-  }
-  if (!author) {
-    showError('step1-error', "Please enter the author's name.");
-    document.getElementById('book-author').focus();
-    return;
-  }
+  if (!title) { showErr('step1-error', 'Please enter the book title.'); return; }
+  if (!author) { showErr('step1-error', 'Please enter the author name.'); return; }
 
   document.getElementById('lookup-btn').disabled = true;
-  document.getElementById('lookup-loading').classList.add('visible');
+  document.getElementById('lookup-loading').style.display = 'block';
 
   try {
     const res = await fetch('/api/books/lookup', {
@@ -328,318 +332,209 @@ document.getElementById('lookup-btn').addEventListener('click', async () => {
       body: JSON.stringify({ title, author }),
     });
     const data = await res.json();
-    if (!res.ok) {
-      showError('step1-error', data.error || 'Something went wrong. Please try again.');
-      return;
-    }
+    if (!res.ok) { showErr('step1-error', data.error || 'Something went wrong.'); return; }
     enrichedData = data;
-    renderPreviewCard(data);
+    renderPreview(data);
     gotoStep(2);
-  } catch {
-    showError('step1-error', 'Could not connect. Please try again.');
-  } finally {
+  } catch { showErr('step1-error', 'Could not connect. Please try again.'); }
+  finally {
     document.getElementById('lookup-btn').disabled = false;
-    document.getElementById('lookup-loading').classList.remove('visible');
+    document.getElementById('lookup-loading').style.display = 'none';
   }
 });
 
-// ════════════════════════════════════════════════════════════════
-// Step 2: Preview card
-// ════════════════════════════════════════════════════════════════
-function renderPreviewCard(data) {
-  const card = document.getElementById('preview-card');
-
-  const coverHtml = data.coverUrl
-    ? `<img src="${esc(data.coverUrl)}" alt="Book cover" class="preview-cover" loading="lazy">`
-    : `<div class="preview-cover-placeholder">📖</div>`;
-
-  let bodyHtml = '<div class="preview-body">';
-
-  if (data.description) {
-    bodyHtml += `
-      <div class="preview-section">
-        <div class="preview-section-label">About This Book</div>
-        <p>${esc(data.description)}</p>
-      </div>`;
-  }
-  if (data.authorBio) {
-    bodyHtml += `
-      <div class="preview-section">
-        <div class="preview-section-label">About the Author</div>
-        <p>${esc(data.authorBio)}</p>
-      </div>`;
-  }
-  const facts = [data.funFact1, data.funFact2].filter(Boolean);
-  if (facts.length) {
-    bodyHtml += `
-      <div class="preview-section">
-        <div class="preview-section-label">Fun Facts</div>
-        <ul class="fun-facts-list">
-          ${facts.map(f => `<li>${esc(f)}</li>`).join('')}
-        </ul>
-      </div>`;
-  }
-  if (!data.description && !data.authorBio && !facts.length) {
-    bodyHtml += `
-      <div class="preview-section">
-        <p>Ready to add this book to your collection!</p>
-      </div>`;
-  }
-
-  bodyHtml += '</div>';
-
-  card.innerHTML = `
-    <div class="preview-cover-row">
-      ${coverHtml}
-      <div>
-        <div class="preview-title">${esc(data.title)}</div>
-        <div class="preview-author">by ${esc(data.author)}</div>
-      </div>
-    </div>
-    ${bodyHtml}
-  `;
+function renderPreview(d) {
+  const cover = d.coverUrl
+    ? `<img src="${esc(d.coverUrl)}" class="preview-img" alt="">`
+    : `<div class="preview-img-placeholder">📖</div>`;
+  let html = `<div class="preview-top">${cover}<div><div class="preview-title">${esc(d.title)}</div><div class="preview-author">by ${esc(d.author)}</div></div></div>`;
+  if (d.description) html += `<div class="preview-section"><strong>About This Book</strong><p>${esc(d.description)}</p></div>`;
+  if (d.authorBio) html += `<div class="preview-section"><strong>About the Author</strong><p>${esc(d.authorBio)}</p></div>`;
+  const facts = [d.funFact1, d.funFact2].filter(Boolean);
+  if (facts.length) html += `<div class="preview-section"><strong>Fun Facts</strong><ul>${facts.map(f=>`<li>${esc(f)}</li>`).join('')}</ul></div>`;
+  document.getElementById('preview-card').innerHTML = html;
 }
 
-// ════════════════════════════════════════════════════════════════
-// Stars
-// ════════════════════════════════════════════════════════════════
-function updateStars(rating) {
-  document.querySelectorAll('.star-btn').forEach(btn => {
-    btn.classList.toggle('active', parseInt(btn.dataset.rating, 10) <= rating);
-  });
-}
-
-document.querySelectorAll('.star-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    selectedRating = parseInt(btn.dataset.rating, 10);
-    updateStars(selectedRating);
-  });
-});
-
-// ════════════════════════════════════════════════════════════════
-// Finished toggle
-// ════════════════════════════════════════════════════════════════
-function clearFinishedSelection() {
-  document.getElementById('finished-yes').classList.remove('selected-yes');
-  document.getElementById('finished-no').classList.remove('selected-no');
-  finishedValue = null;
-}
-
-document.getElementById('finished-yes').addEventListener('click', () => {
-  finishedValue = true;
-  document.getElementById('finished-yes').classList.add('selected-yes');
-  document.getElementById('finished-no').classList.remove('selected-no');
-});
-document.getElementById('finished-no').addEventListener('click', () => {
-  finishedValue = false;
-  document.getElementById('finished-no').classList.add('selected-no');
-  document.getElementById('finished-yes').classList.remove('selected-yes');
-});
-
-// ════════════════════════════════════════════════════════════════
-// Step 3: Save
-// ════════════════════════════════════════════════════════════════
+// ── Step 3 save ──────────────────────────────────────────────────
 document.getElementById('save-btn').addEventListener('click', async () => {
-  clearError('step3-error');
-
-  if (!selectedRating) {
-    showError('step3-error', 'Please choose a star rating — tap the gold stars above!');
-    return;
-  }
-  if (finishedValue === null) {
-    showError('step3-error', 'Please tap "Yes!" or "Not yet" to say if you finished the book.');
-    return;
-  }
+  clearErr('step3-error');
+  if (!selectedRating) { showErr('step3-error', 'Please choose a star rating.'); return; }
+  if (finishedValue === null) { showErr('step3-error', 'Please say if you finished the book.'); return; }
 
   document.getElementById('save-btn').disabled = true;
-  document.getElementById('save-loading').classList.add('visible');
-
-  const payload = {
-    title: enrichedData.title,
-    author: enrichedData.author,
-    coverUrl: enrichedData.coverUrl || null,
-    bookDescription: enrichedData.description || null,
-    authorBio: enrichedData.authorBio || null,
-    funFact1: enrichedData.funFact1 || null,
-    funFact2: enrichedData.funFact2 || null,
-    rating: selectedRating,
-    finished: finishedValue,
-    review: document.getElementById('review-text').value.trim() || null,
-    genre: document.getElementById('genre-input').value.trim() || null,
-    notes: document.getElementById('notes-input').value.trim() || null,
-  };
+  document.getElementById('save-loading').style.display = 'block';
 
   try {
     const res = await fetch('/api/books/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        title: enrichedData.title,
+        author: enrichedData.author,
+        coverUrl: enrichedData.coverUrl || null,
+        bookDescription: enrichedData.description || null,
+        authorBio: enrichedData.authorBio || null,
+        funFact1: enrichedData.funFact1 || null,
+        funFact2: enrichedData.funFact2 || null,
+        rating: selectedRating,
+        finished: finishedValue,
+        review: document.getElementById('review-text').value.trim() || null,
+        genre: document.getElementById('genre-input').value.trim() || null,
+        notes: document.getElementById('notes-input').value.trim() || null,
+      }),
     });
     const data = await res.json();
-    if (!res.ok || !data.success) {
-      showError('step3-error', data.error || 'Something went wrong saving. Please try again.');
-      return;
-    }
+    if (!res.ok || !data.success) { showErr('step3-error', data.error || 'Could not save.'); return; }
     showLibrary();
-  } catch {
-    showError('step3-error', 'Could not save your book. Please try again.');
-  } finally {
+  } catch { showErr('step3-error', 'Could not save. Please try again.'); }
+  finally {
     document.getElementById('save-btn').disabled = false;
-    document.getElementById('save-loading').classList.remove('visible');
+    document.getElementById('save-loading').style.display = 'none';
   }
 });
 
-// ════════════════════════════════════════════════════════════════
-// Library: load & render
-// ════════════════════════════════════════════════════════════════
+// ── Load + render grid ───────────────────────────────────────────
 async function loadBooks() {
-  const errEl = document.getElementById('library-error');
-  errEl.style.display = 'none';
+  const err = document.getElementById('library-error');
+  err.style.display = 'none';
   try {
-    const res = await fetch('/api/books');
-    if (!res.ok) throw new Error('Server error');
-    const books = await res.json();
-    renderBooks(books);
+    const books = await fetch('/api/books').then(r => r.json());
+    renderGrid(books);
   } catch {
-    errEl.textContent = 'Could not load your books. Please refresh the page.';
-    errEl.style.display = 'block';
+    err.textContent = 'Could not load books. Please refresh.';
+    err.style.display = 'block';
   }
 }
 
-function renderBooks(books) {
-  const wrap = document.getElementById('book-list-wrap');
-  const listEl = document.getElementById('book-list');
+function renderGrid(books) {
+  const wrap = document.getElementById('grid-wrap');
+  const tbody = document.getElementById('grid-body');
   const empty = document.getElementById('empty-library');
   const countEl = document.getElementById('book-count');
-  listEl.innerHTML = '';
+  tbody.innerHTML = '';
 
   if (!books.length) {
     wrap.style.display = 'none';
     empty.style.display = '';
+    countEl.textContent = '';
     return;
   }
-  empty.style.display = 'none';
   wrap.style.display = '';
-  countEl.textContent = books.length === 1 ? '1 book in your collection' : `${books.length} books in your collection`;
+  empty.style.display = 'none';
+  countEl.textContent = books.length === 1 ? '1 book' : `${books.length} books`;
 
   books.forEach(book => {
-    const entry = document.createElement('div');
-    entry.className = 'book-entry';
+    const tr = document.createElement('tr');
 
-    // Cover
-    const coverHtml = book.cover_url
-      ? `<img src="${esc(book.cover_url)}" alt="Cover of ${esc(book.title)}" class="entry-cover" loading="lazy">`
-      : `<div class="entry-cover-placeholder">📖</div>`;
+    const cover = book.cover_url
+      ? `<img src="${esc(book.cover_url)}" class="grid-cover" loading="lazy" alt="">`
+      : `<div class="grid-cover-ph">📖</div>`;
 
-    // Stars
-    const starsHtml = renderStarsHtml(book.rating || 0);
+    const stars = [1,2,3,4,5].map(i =>
+      `<span class="${i <= (book.rating||0) ? 'star-on' : 'star-off'}">★</span>`
+    ).join('');
 
-    // Finished badge
-    const finishedHtml = book.finished
-      ? `<span class="entry-badge badge-finished">✓ Finished</span>`
-      : `<span class="entry-badge badge-reading">📖 Still Reading</span>`;
+    const finBadge = book.finished
+      ? `<span class="badge-yes">✓ Yes</span>`
+      : `<span class="badge-no">Reading</span>`;
 
-    // Genre pill (only if set)
-    const genreHtml = book.genre
-      ? `<span class="entry-genre-pill">${esc(book.genre)}</span>`
-      : '';
-
-    // Date
-    const dateHtml = book.added_at
-      ? `<span class="entry-date">${formatDate(book.added_at)}</span>`
-      : '';
-
-    // Conditional sections — only render if content exists
-    const reviewHtml = book.review ? `
-      <hr class="entry-divider">
-      <div class="entry-section">
-        <div class="entry-section-heading">Jean's Review</div>
-        <div class="entry-section-body entry-review-text">${esc(book.review)}</div>
-      </div>` : '';
-
-    const descHtml = book.book_description ? `
-      <hr class="entry-divider">
-      <div class="entry-section">
-        <div class="entry-section-heading">About This Book</div>
-        <div class="entry-section-body">${esc(book.book_description)}</div>
-      </div>` : '';
-
-    const bioHtml = book.author_bio ? `
-      <hr class="entry-divider">
-      <div class="entry-section">
-        <div class="entry-section-heading">About the Author</div>
-        <div class="entry-section-body">${esc(book.author_bio)}</div>
-      </div>` : '';
-
-    const facts = [book.fun_fact_1, book.fun_fact_2].filter(Boolean);
-    const funFactsHtml = facts.length ? `
-      <hr class="entry-divider">
-      <div class="entry-section">
-        <div class="entry-section-heading">💡 Fun Facts</div>
-        <ul class="entry-fun-facts">
-          ${facts.map(f => `<li>${esc(f)}</li>`).join('')}
-        </ul>
-      </div>` : '';
-
-    const notesHtml = book.notes ? `
-      <hr class="entry-divider">
-      <div class="entry-section">
-        <div class="entry-section-heading">📝 My Notes</div>
-        <div class="entry-section-body">${esc(book.notes)}</div>
-      </div>` : '';
-
-    entry.innerHTML = `
-      <div class="entry-top">
-        <div class="entry-cover-wrap">${coverHtml}</div>
-        <div class="entry-meta">
-          <div class="entry-title">${esc(book.title)}</div>
-          <div class="entry-author">by ${esc(book.author)}</div>
-          <div class="entry-stars">${starsHtml}</div>
-          <div class="entry-badges">${finishedHtml}${genreHtml}</div>
-          ${dateHtml}
-        </div>
-      </div>
-      ${reviewHtml}
-      ${descHtml}
-      ${bioHtml}
-      ${funFactsHtml}
-      ${notesHtml}
+    tr.innerHTML = `
+      <td class="td-cover">${cover}</td>
+      <td class="td-title">${esc(book.title)}</td>
+      <td class="td-author">${esc(book.author)}</td>
+      <td class="td-genre">${book.genre ? `<span class="genre-tag">${esc(book.genre)}</span>` : ''}</td>
+      <td class="td-stars">${stars}</td>
+      <td class="td-fin">${finBadge}</td>
+      <td class="td-text">${esc(book.review || '')}</td>
+      <td class="td-text">${esc(book.book_description || '')}</td>
+      <td class="td-text">${esc(book.author_bio || '')}</td>
+      <td class="td-text">${esc(book.fun_fact_1 || '')}</td>
+      <td class="td-text">${esc(book.fun_fact_2 || '')}</td>
+      <td class="td-text">${esc(book.notes || '')}</td>
+      <td class="td-date">${fmtDate(book.added_at)}</td>
+      <td class="td-actions">
+        <button class="btn-edit" onclick="openEdit(${book.id})">✏️ Edit</button>
+        <button class="btn-delete" onclick="deleteBook(${book.id}, '${esc(book.title)}')">🗑 Delete</button>
+      </td>
     `;
-
-    listEl.appendChild(entry);
+    tbody.appendChild(tr);
   });
 }
 
+// ── Edit modal ───────────────────────────────────────────────────
+async function openEdit(id) {
+  const book = await fetch(`/api/books/${id}`).then(r => r.json());
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-title').value = book.title || '';
+  document.getElementById('edit-author').value = book.author || '';
+  document.getElementById('edit-genre').value = book.genre || '';
+  document.getElementById('edit-review').value = book.review || '';
+  document.getElementById('edit-notes').value = book.notes || '';
+  editRating = book.rating || 0;
+  editFinished = book.finished === 1 || book.finished === true;
+  updateStars('edit-stars-row', editRating);
+  document.getElementById('edit-finished-yes').classList.toggle('sel', editFinished);
+  document.getElementById('edit-finished-no').classList.toggle('sel', !editFinished);
+  clearErr('edit-error');
+  document.getElementById('edit-overlay').style.display = 'flex';
+}
+
+document.getElementById('edit-cancel-btn').addEventListener('click', () => {
+  document.getElementById('edit-overlay').style.display = 'none';
+});
+
+document.getElementById('edit-save-btn').addEventListener('click', async () => {
+  const id = document.getElementById('edit-id').value;
+  const title = document.getElementById('edit-title').value.trim();
+  const author = document.getElementById('edit-author').value.trim();
+  if (!title || !author) { showErr('edit-error', 'Title and author are required.'); return; }
+
+  document.getElementById('edit-save-btn').disabled = true;
+  try {
+    const res = await fetch(`/api/books/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title, author,
+        genre: document.getElementById('edit-genre').value.trim() || null,
+        rating: editRating || null,
+        finished: editFinished,
+        review: document.getElementById('edit-review').value.trim() || null,
+        notes: document.getElementById('edit-notes').value.trim() || null,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) { showErr('edit-error', data.error || 'Could not save.'); return; }
+    document.getElementById('edit-overlay').style.display = 'none';
+    loadBooks();
+  } catch { showErr('edit-error', 'Could not save changes.'); }
+  finally { document.getElementById('edit-save-btn').disabled = false; }
+});
+
+// ── Delete ───────────────────────────────────────────────────────
+async function deleteBook(id, title) {
+  if (!confirm(`Delete "${title}"?\n\nThis cannot be undone.`)) return;
+  try {
+    const res = await fetch(`/api/books/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!res.ok || !data.success) { alert('Could not delete book.'); return; }
+    loadBooks();
+  } catch { alert('Could not delete book.'); }
+}
+
+// ── Helpers ──────────────────────────────────────────────────────
 function esc(s) {
   if (!s) return '';
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-function renderStarsHtml(rating) {
-  let html = '';
-  for (let i = 1; i <= 5; i++) {
-    html += i <= rating
-      ? '<span>★</span>'
-      : '<span class="star-empty">★</span>';
-  }
-  return html;
-}
-
-function formatDate(dt) {
+function fmtDate(dt) {
   if (!dt) return '';
-  try {
-    return new Date(dt).toLocaleDateString('en-US', {
-      month: 'long', day: 'numeric', year: 'numeric'
-    });
-  } catch { return dt; }
+  try { return new Date(dt).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }); }
+  catch { return dt; }
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────
+// ── Init ─────────────────────────────────────────────────────────
 loadBooks();
 </script>
 </body>
