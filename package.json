@@ -1,0 +1,19 @@
+{
+  "name": "bookworm",
+  "version": "1.0.0",
+  "description": "Jean's Book Club — personal reading tracker for Jean Whiddon",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.4.3",
+    "express": "^4.18.3",
+    "express-session": "^1.18.0",
+    "node-fetch": "^2.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

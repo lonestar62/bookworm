@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jean's Book Club 📚</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────── -->
+<header class="site-header">
+  <h1>Jean's Book Club 📚</h1>
+  <button class="logout-btn" id="logout-btn">Sign Out</button>
+</header>
+
+<!-- ── Main App ─────────────────────────────────────────────── -->
+<div class="page-wrap">
+
+  <!-- ── LIBRARY VIEW ────────────────────────────────────────── -->
+  <div id="view-library">
+    <div class="add-book-wrap">
+      <button class="btn btn-primary" id="add-book-btn">
+        ➕ Add a Book
+      </button>
+    </div>
+    <div id="library-error" class="error-msg"></div>
+    <div id="book-list" class="book-list">
+      <!-- cards injected here -->
+    </div>
+    <div id="empty-library" class="empty-library" style="display:none;">
+      <div class="big-icon">📖</div>
+      <p>No books yet! Add your first book above.</p>
+    </div>
+  </div>
+
+  <!-- ── WIZARD VIEW ─────────────────────────────────────────── -->
+  <div id="view-wizard" style="display:none;">
+
+    <!-- Step indicators -->
+    <div class="step-indicator" id="step-indicator">
+      <div class="step-dot active" id="dot-1"></div>
+      <div class="step-dot" id="dot-2"></div>
+      <div class="step-dot" id="dot-3"></div>
+    </div>
+
+    <!-- Step 1: Title + Author -->
+    <div class="wizard-step active" id="step-1">
+      <h2 class="step-header">What book are you adding?</h2>
+      <div id="step1-error" class="error-msg"></div>
+      <div class="form-group">
+        <label for="book-title">Book Title</label>
+        <input type="text" id="book-title" name="book-title" placeholder="e.g. The Great Gatsby" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label for="book-author">Author</label>
+        <input type="text" id="book-author" name="book-author" placeholder="e.g. F. Scott Fitzgerald" autocomplete="off">
+      </div>
+      <button class="btn btn-primary" id="lookup-btn">🔍 Look It Up</button>
+      <div style="margin-top:16px;">
+        <button class="btn btn-secondary" id="cancel-wizard-1">Cancel</button>
+      </div>
+
+      <!-- Loading state -->
+      <div class="loading-wrap" id="lookup-loading">
+        <div class="spinner"></div>
+        <p class="loading-text">Looking up your book…</p>
+      </div>
+    </div>
+
+    <!-- Step 2: Enriched Preview -->
+    <div class="wizard-step" id="step-2">
+      <h2 class="step-header">Here's what I found!</h2>
+      <div id="preview-card" class="preview-card">
+        <!-- injected by JS -->
+      </div>
+      <button class="btn btn-primary" id="to-step3-btn">✍️ Write My Review</button>
+      <div style="margin-top:16px;">
+        <button class="btn btn-secondary" id="back-to-step1">← Change Book</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Review Form -->
+    <div class="wizard-step" id="step-3">
+      <h2 class="step-header">What did you think?</h2>
+      <div id="step3-error" class="error-msg"></div>
+
+      <!-- Star Rating -->
+      <div class="form-group">
+        <label>Your Rating</label>
+        <div class="stars-row" role="group" aria-label="Star rating">
+          <button class="star-btn" data-rating="1" aria-label="1 star">★</button>
+          <button class="star-btn" data-rating="2" aria-label="2 stars">★</button>
+          <button class="star-btn" data-rating="3" aria-label="3 stars">★</button>
+          <button class="star-btn" data-rating="4" aria-label="4 stars">★</button>
+          <button class="star-btn" data-rating="5" aria-label="5 stars">★</button>
+        </div>
+      </div>
+
+      <!-- Review Text -->
+      <div class="form-group">
+        <label for="review-text">What did you think?</label>
+        <textarea
+          id="review-text"
+          placeholder="Tell me what you thought about this book…"
+          rows="5"
+        ></textarea>
+      </div>
+
+      <!-- Finished? -->
+      <div class="form-group">
+        <label>Did you finish it?</label>
+        <div class="finished-row">
+          <button class="btn-yes-no" id="finished-yes" data-value="true">✅ Yes!</button>
+          <button class="btn-yes-no" id="finished-no" data-value="false">📖 Not yet</button>
+        </div>
+      </div>
+
+      <!-- Save -->
+      <button class="btn btn-primary" id="save-btn" style="background:#1e7e34; margin-top:8px;">
+        💾 Save My Book
+      </button>
+      <div style="margin-top:16px;">
+        <button class="btn btn-secondary" id="back-to-step2">← Back</button>
+      </div>
+
+      <!-- Saving indicator -->
+      <div class="loading-wrap" id="save-loading">
+        <div class="spinner"></div>
+        <p class="loading-text">Saving your book…</p>
+      </div>
+    </div>
+
+  </div><!-- /view-wizard -->
+</div><!-- /page-wrap -->
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+let currentStep = 1;
+let enrichedData = null;  // result from /api/books/lookup
+let selectedRating = 0;
+let finishedValue = null; // true/false
+
+// ── Auth check ───────────────────────────────────────────────────────────────
+fetch('/auth/status').then(r => r.json()).then(data => {
+  if (!data.loggedIn) window.location.href = '/';
+});
+
+// ── Logout ───────────────────────────────────────────────────────────────────
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await fetch('/auth/logout', { method: 'POST' });
+  window.location.href = '/';
+});
+
+// ── View switchers ────────────────────────────────────────────────────────────
+function showLibrary() {
+  document.getElementById('view-library').style.display = '';
+  document.getElementById('view-wizard').style.display = 'none';
+  loadBooks();
+}
+
+function showWizard() {
+  document.getElementById('view-library').style.display = 'none';
+  document.getElementById('view-wizard').style.display = '';
+  gotoStep(1);
+  // Reset form
+  document.getElementById('book-title').value = '';
+  document.getElementById('book-author').value = '';
+  document.getElementById('review-text').value = '';
+  selectedRating = 0;
+  finishedValue = null;
+  enrichedData = null;
+  updateStars(0);
+  clearFinishedSelection();
+  clearError('step1-error');
+  clearError('step3-error');
+}
+
+// ── Step navigation ───────────────────────────────────────────────────────────
+function gotoStep(n) {
+  currentStep = n;
+  [1,2,3].forEach(i => {
+    document.getElementById('step-' + i).classList.toggle('active', i === n);
+    const dot = document.getElementById('dot-' + i);
+    dot.classList.remove('active', 'done');
+    if (i < n) dot.classList.add('done');
+    else if (i === n) dot.classList.add('active');
+  });
+}
+
+document.getElementById('add-book-btn').addEventListener('click', showWizard);
+document.getElementById('cancel-wizard-1').addEventListener('click', showLibrary);
+document.getElementById('back-to-step1').addEventListener('click', () => gotoStep(1));
+document.getElementById('back-to-step2').addEventListener('click', () => gotoStep(2));
+document.getElementById('to-step3-btn').addEventListener('click', () => gotoStep(3));
+
+// ── Error helpers ─────────────────────────────────────────────────────────────
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+function clearError(id) {
+  const el = document.getElementById(id);
+  el.textContent = '';
+  el.classList.remove('visible');
+}
+
+// ── Step 1: Lookup ────────────────────────────────────────────────────────────
+document.getElementById('lookup-btn').addEventListener('click', async () => {
+  clearError('step1-error');
+  const title = document.getElementById('book-title').value.trim();
+  const author = document.getElementById('book-author').value.trim();
+  if (!title) {
+    showError('step1-error', 'Please enter the book title.');
+    document.getElementById('book-title').focus();
+    return;
+  }
+  if (!author) {
+    showError('step1-error', 'Please enter the author\'s name.');
+    document.getElementById('book-author').focus();
+    return;
+  }
+
+  // Show loading
+  document.getElementById('lookup-btn').disabled = true;
+  document.getElementById('lookup-loading').classList.add('visible');
+
+  try {
+    const res = await fetch('/api/books/lookup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, author }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showError('step1-error', data.error || 'Something went wrong. Please try again.');
+      return;
+    }
+    enrichedData = data;
+    renderPreviewCard(data);
+    gotoStep(2);
+  } catch (err) {
+    showError('step1-error', 'Could not connect. Please try again.');
+  } finally {
+    document.getElementById('lookup-btn').disabled = false;
+    document.getElementById('lookup-loading').classList.remove('visible');
+  }
+});
+
+// ── Preview Card ─────────────────────────────────────────────────────────────
+function renderPreviewCard(data) {
+  const card = document.getElementById('preview-card');
+  const hasCover = data.coverUrl;
+  const coverHtml = hasCover
+    ? `<img src="${escHtml(data.coverUrl)}" alt="Book cover" class="preview-cover" loading="lazy">`
+    : `<div class="preview-cover-placeholder">📖</div>`;
+
+  let sections = '';
+  if (data.description) {
+    const short = data.description.length > 400
+      ? data.description.substring(0, 400) + '…'
+      : data.description;
+    sections += `
+      <div class="preview-section">
+        <h3>About This Book</h3>
+        <p>${escHtml(short)}</p>
+      </div>`;
+  }
+  if (data.authorBio) {
+    sections += `
+      <div class="preview-section">
+        <h3>About the Author</h3>
+        <p>${escHtml(data.authorBio)}</p>
+      </div>`;
+  }
+  if (data.funFact1 || data.funFact2) {
+    const facts = [data.funFact1, data.funFact2].filter(Boolean);
+    sections += `
+      <div class="preview-section">
+        <h3>Fun Facts</h3>
+        <ul class="fun-facts-list">
+          ${facts.map(f => `<li>${escHtml(f)}</li>`).join('')}
+        </ul>
+      </div>`;
+  }
+  if (!data.description && !data.authorBio && !data.funFact1) {
+    sections = `<div class="preview-section"><p>Ready to add this book to your collection!</p></div>`;
+  }
+
+  card.innerHTML = `
+    <div class="preview-cover-row">
+      ${coverHtml}
+      <div>
+        <div class="preview-title">${escHtml(data.title)}</div>
+        <div class="preview-author">by ${escHtml(data.author)}</div>
+      </div>
+    </div>
+    ${sections}
+  `;
+}
+
+// ── Stars ────────────────────────────────────────────────────────────────────
+function updateStars(rating) {
+  document.querySelectorAll('.star-btn').forEach(btn => {
+    const r = parseInt(btn.dataset.rating, 10);
+    btn.classList.toggle('active', r <= rating);
+  });
+}
+
+document.querySelectorAll('.star-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    selectedRating = parseInt(btn.dataset.rating, 10);
+    updateStars(selectedRating);
+  });
+});
+
+// ── Finished ─────────────────────────────────────────────────────────────────
+function clearFinishedSelection() {
+  document.getElementById('finished-yes').classList.remove('selected-yes');
+  document.getElementById('finished-no').classList.remove('selected-no');
+  finishedValue = null;
+}
+
+document.getElementById('finished-yes').addEventListener('click', () => {
+  finishedValue = true;
+  document.getElementById('finished-yes').classList.add('selected-yes');
+  document.getElementById('finished-no').classList.remove('selected-no');
+});
+document.getElementById('finished-no').addEventListener('click', () => {
+  finishedValue = false;
+  document.getElementById('finished-no').classList.add('selected-no');
+  document.getElementById('finished-yes').classList.remove('selected-yes');
+});
+
+// ── Step 3: Save ──────────────────────────────────────────────────────────────
+document.getElementById('save-btn').addEventListener('click', async () => {
+  clearError('step3-error');
+  if (!selectedRating) {
+    showError('step3-error', 'Please choose a star rating — tap the stars above.');
+    return;
+  }
+  if (finishedValue === null) {
+    showError('step3-error', 'Please tap Yes or Not yet to say if you finished the book.');
+    return;
+  }
+
+  document.getElementById('save-btn').disabled = true;
+  document.getElementById('save-loading').classList.add('visible');
+
+  const payload = {
+    title: enrichedData.title,
+    author: enrichedData.author,
+    coverUrl: enrichedData.coverUrl || null,
+    bookDescription: enrichedData.description || null,
+    authorBio: enrichedData.authorBio || null,
+    funFact1: enrichedData.funFact1 || null,
+    funFact2: enrichedData.funFact2 || null,
+    rating: selectedRating,
+    finished: finishedValue,
+    review: document.getElementById('review-text').value.trim() || null,
+  };
+
+  try {
+    const res = await fetch('/api/books/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      showError('step3-error', data.error || 'Something went wrong saving. Please try again.');
+      return;
+    }
+    showLibrary();
+  } catch (err) {
+    showError('step3-error', 'Could not save your book. Please try again.');
+  } finally {
+    document.getElementById('save-btn').disabled = false;
+    document.getElementById('save-loading').classList.remove('visible');
+  }
+});
+
+// ── Library ────────────────────────────────────────────────────────────────
+async function loadBooks() {
+  const libraryError = document.getElementById('library-error');
+  libraryError.classList.remove('visible');
+  try {
+    const res = await fetch('/api/books');
+    if (!res.ok) throw new Error('Server error');
+    const books = await res.json();
+    renderBooks(books);
+  } catch (err) {
+    libraryError.textContent = 'Could not load your books. Please refresh the page.';
+    libraryError.classList.add('visible');
+  }
+}
+
+function renderBooks(books) {
+  const list = document.getElementById('book-list');
+  const empty = document.getElementById('empty-library');
+  list.innerHTML = '';
+  if (!books.length) {
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  books.forEach(book => {
+    const card = document.createElement('div');
+    card.className = 'book-card';
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('role', 'article');
+    card.setAttribute('aria-label', `${book.title} by ${book.author}`);
+
+    const stars = renderStarsHtml(book.rating || 0);
+    const coverHtml = book.cover_url
+      ? `<img src="${escHtml(book.cover_url)}" alt="" class="book-cover" loading="lazy">`
+      : `<div class="book-cover-placeholder">📖</div>`;
+    const snippet = (book.review || '').substring(0, 100);
+    const dateStr = formatDate(book.added_at);
+    const finishedBadge = book.finished
+      ? `<span class="book-finished-badge">✓ Finished</span>`
+      : `<span class="book-finished-badge not-finished">Still reading</span>`;
+
+    card.innerHTML = `
+      <div class="book-card-inner">
+        ${coverHtml}
+        <div class="book-info">
+          <div class="book-title">${escHtml(book.title)}</div>
+          <div class="book-author">by ${escHtml(book.author)}</div>
+          <div class="book-stars">${stars}</div>
+          ${snippet ? `<div class="book-snippet">${escHtml(snippet)}${book.review && book.review.length > 100 ? '…' : ''}</div>` : ''}
+          ${finishedBadge}
+          <div class="book-date">Added ${dateStr}</div>
+        </div>
+      </div>
+      <div class="book-detail" id="detail-${book.id}">
+        ${renderDetailContent(book)}
+      </div>
+    `;
+
+    // Toggle expand
+    function toggleDetail() {
+      const detail = document.getElementById('detail-' + book.id);
+      detail.classList.toggle('open');
+    }
+    card.addEventListener('click', toggleDetail);
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleDetail(); }
+    });
+
+    list.appendChild(card);
+  });
+}
+
+function renderDetailContent(book) {
+  let sections = '';
+  if (book.review) {
+    sections += `
+      <div class="book-detail-section">
+        <h3>My Review</h3>
+        <p>${escHtml(book.review)}</p>
+      </div>`;
+  }
+  if (book.book_description) {
+    const d = book.book_description.length > 500
+      ? book.book_description.substring(0, 500) + '…'
+      : book.book_description;
+    sections += `
+      <div class="book-detail-section">
+        <h3>About This Book</h3>
+        <p>${escHtml(d)}</p>
+      </div>`;
+  }
+  if (book.author_bio) {
+    sections += `
+      <div class="book-detail-section">
+        <h3>About the Author</h3>
+        <p>${escHtml(book.author_bio)}</p>
+      </div>`;
+  }
+  const facts = [book.fun_fact_1, book.fun_fact_2].filter(Boolean);
+  if (facts.length) {
+    sections += `
+      <div class="book-detail-section">
+        <h3>Fun Facts</h3>
+        <ul class="fun-facts-list">
+          ${facts.map(f => `<li>${escHtml(f)}</li>`).join('')}
+        </ul>
+      </div>`;
+  }
+  return sections || '<p style="color:#888; font-size:1rem;">Tap again to collapse.</p>';
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderStarsHtml(rating) {
+  let html = '';
+  for (let i = 1; i <= 5; i++) {
+    html += i <= rating
+      ? '<span>★</span>'
+      : '<span class="empty">★</span>';
+  }
+  return html;
+}
+
+function formatDate(dt) {
+  if (!dt) return '';
+  try {
+    const d = new Date(dt);
+    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  } catch {
+    return dt;
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadBooks();
+</script>
+</body>
+</html>

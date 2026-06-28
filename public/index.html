@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jean's Book Club 📚</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-logo">📚</div>
+      <h1>Jean's Book Club</h1>
+      <p class="subtitle">Sign in to see your books</p>
+
+      <div id="error-msg" class="error-msg" role="alert"></div>
+
+      <form id="login-form" novalidate>
+        <div class="form-group">
+          <label for="email">Enter your email address</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            autocomplete="email"
+            autocapitalize="none"
+            spellcheck="false"
+            placeholder="jean@whiddon.net"
+            aria-describedby="error-msg"
+          >
+        </div>
+        <button type="submit" class="btn btn-primary" id="signin-btn">
+          Sign In
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // If already logged in, redirect to app
+    fetch('/auth/status').then(r => r.json()).then(data => {
+      if (data.loggedIn) window.location.href = '/app';
+    });
+
+    const form = document.getElementById('login-form');
+    const emailInput = document.getElementById('email');
+    const errorMsg = document.getElementById('error-msg');
+    const signinBtn = document.getElementById('signin-btn');
+
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorMsg.classList.add('visible');
+    }
+    function hideError() {
+      errorMsg.classList.remove('visible');
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError();
+      const email = emailInput.value.trim();
+      if (!email) {
+        showError('Please enter your email address.');
+        emailInput.focus();
+        return;
+      }
+      signinBtn.disabled = true;
+      signinBtn.textContent = 'Signing in…';
+      try {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          window.location.href = '/app';
+        } else {
+          showError(data.error || 'Something went wrong. Please try again.');
+          signinBtn.disabled = false;
+          signinBtn.textContent = 'Sign In';
+          emailInput.focus();
+        }
+      } catch (err) {
+        showError('Could not connect. Please check your internet and try again.');
+        signinBtn.disabled = false;
+        signinBtn.textContent = 'Sign In';
+      }
+    });
+  </script>
+</body>
+</html>
