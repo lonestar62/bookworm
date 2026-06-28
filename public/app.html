@@ -38,13 +38,11 @@
               <th class="col-author">Author</th>
               <th class="col-genre">Genre</th>
               <th class="col-rating">Rating</th>
-              <th class="col-fin">Finished?</th>
               <th class="col-review">Jean's Review</th>
               <th class="col-desc">About the Book</th>
               <th class="col-bio">About the Author</th>
               <th class="col-fact">Fun Fact 1</th>
               <th class="col-fact">Fun Fact 2</th>
-              <th class="col-notes">Notes</th>
               <th class="col-date">Date Added</th>
               <th class="col-actions">Actions</th>
             </tr>
@@ -445,13 +443,11 @@ function renderGrid(books) {
       <td class="td-author">${esc(book.author)}</td>
       <td class="td-genre">${book.genre ? `<span class="genre-tag">${esc(book.genre)}</span>` : ''}</td>
       <td class="td-stars">${stars}</td>
-      <td class="td-fin">${finBadge}</td>
       <td class="td-text">${esc(book.review || '')}</td>
       <td class="td-text">${esc(book.book_description || '')}</td>
       <td class="td-text">${esc(book.author_bio || '')}</td>
       <td class="td-text">${esc(book.fun_fact_1 || '')}</td>
       <td class="td-text">${esc(book.fun_fact_2 || '')}</td>
-      <td class="td-text">${esc(book.notes || '')}</td>
       <td class="td-date">${fmtDate(book.added_at)}</td>
     `;
     tbody.appendChild(tr);
