@@ -226,7 +226,7 @@ function renderGrid(books) {
       <td class="td-cover">${cover}</td>
       <td class="td-text"><strong>${x(b.title)}</strong></td>
       <td class="td-text"><em>${x(b.author)}</em></td>
-      <td class="td-text">${b.genre?`<span class="genre-tag">${x(b.genre)}</span>`:''}</td>
+      <td class="td-text">${x(b.genre||''  )}</td>
       <td class="td-stars">${stars}</td>
       <td class="td-long">${x(b.review||'')}</td>
       <td class="td-long">${x(b.book_description||'')}</td>
