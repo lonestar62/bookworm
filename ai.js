@@ -1,11 +1,8 @@
 /**
- * ai.js — Gemini 2.5-flash enrichment for Bookworm
- * Gemini handles book description, author bio, fun facts.
- * Google Books used only for cover image (best-effort).
+ * ai.js — Gemini 2.5-flash enrichment for Bookworm (JSON mode)
  */
 
 const fetch = require('node-fetch');
-
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 async function fetchCover(title, author) {
@@ -27,13 +24,14 @@ async function fetchCover(title, author) {
 async function fetchGeminiEnrichment(title, author) {
   if (!GEMINI_API_KEY) return { description: null, authorBio: null, funFact1: null, funFact2: null };
 
-  const prompt = `A sweet 88-year-old woman named Jean just finished reading "${title}" by ${author}. Tell her about the book and author in warm, friendly language.
+  const prompt = `You are helping an 88-year-old book lover learn about a book she just read.
+Book: "${title}" by ${author}
 
-Reply on exactly 4 lines, no extra text:
-DESCRIPTION: Write 2-3 sentences about what this book is about and why readers love it.
-AUTHOR_BIO: Write 2-3 sentences about ${author}'s life and writing style.
-FUN_FACT_1: Share one delightful fun fact about ${author} or this book.
-FUN_FACT_2: Share one more delightful fun fact about ${author} or this book.`;
+Respond with a JSON object with exactly these four keys:
+- "description": 2-3 warm, friendly sentences about what this book is about and why readers love it
+- "author_bio": 2-3 warm sentences about ${author}'s life and writing style  
+- "fun_fact_1": one delightful fun fact about ${author} or this book
+- "fun_fact_2": another delightful fun fact about ${author} or this book`;
 
   try {
     const res = await fetch(
@@ -43,32 +41,30 @@ FUN_FACT_2: Share one more delightful fun fact about ${author} or this book.`;
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 2048, temperature: 0.7 },
+          generationConfig: {
+            maxOutputTokens: 2048,
+            temperature: 0.7,
+            responseMimeType: 'application/json',
+          },
         }),
         timeout: 30000,
       }
     );
     if (!res.ok) {
-      console.warn('[gemini] error:', res.status, await res.text().then(t => t.substring(0,150)));
+      console.warn('[gemini] error:', res.status);
       return { description: null, authorBio: null, funFact1: null, funFact2: null };
     }
     const data = await res.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    console.log('[gemini] raw response length:', text.length);
-
-    const line = (key) => {
-      const m = text.match(new RegExp(`^${key}:\\s*(.+)$`, 'im'));
-      return m ? m[1].trim() : null;
-    };
-
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    const parsed = JSON.parse(text);
     return {
-      description: line('DESCRIPTION'),
-      authorBio: line('AUTHOR_BIO'),
-      funFact1: line('FUN_FACT_1'),
-      funFact2: line('FUN_FACT_2'),
+      description: parsed.description || null,
+      authorBio: parsed.author_bio || null,
+      funFact1: parsed.fun_fact_1 || null,
+      funFact2: parsed.fun_fact_2 || null,
     };
   } catch (err) {
-    console.warn('[gemini] fetch failed:', err.message);
+    console.warn('[gemini] failed:', err.message);
     return { description: null, authorBio: null, funFact1: null, funFact2: null };
   }
 }
