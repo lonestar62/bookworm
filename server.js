@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const express = require('express');
 const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
 const path = require('path');
 const db = require('./db');
 const { enrichBook } = require('./ai');
@@ -23,6 +24,10 @@ const ALLOWED_EMAILS = (process.env.ALLOWED_EMAILS || 'jean@whiddon.net,rod@whid
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
+  store: new SQLiteStore({
+    db: 'sessions.sqlite',
+    dir: process.env.SESSION_DB_DIR || '/opt/bookworm',
+  }),
   secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
@@ -180,4 +185,5 @@ app.get('/app', requireAuth, (req, res) => {
 app.listen(PORT, () => {
   console.log(`[bookworm] listening on port ${PORT}`);
   console.log(`[bookworm] allowed emails: ${ALLOWED_EMAILS.join(', ')}`);
+  console.log(`[bookworm] session store: SQLite (persistent)`);
 });
