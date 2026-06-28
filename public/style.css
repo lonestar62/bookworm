@@ -837,6 +837,174 @@ textarea {
   flex-wrap: wrap;
 }
 
+/* ── Quick-Glance List ─────────────────────────────────────────────────────── */
+
+.quick-list-section {
+  margin: 0 0 36px;
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+}
+
+.quick-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 22px;
+  background: var(--green);
+  color: white;
+}
+
+.quick-list-title {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: white;
+  letter-spacing: 0.01em;
+}
+
+.quick-list-count {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.75);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.quick-list-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.quick-list-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-light);
+  transition: background 0.15s;
+  text-decoration: none;
+  color: inherit;
+}
+.quick-list-row:last-child {
+  border-bottom: none;
+}
+.quick-list-row:hover {
+  background: var(--cream);
+}
+.quick-list-row:focus {
+  outline: 3px solid var(--green);
+  outline-offset: -2px;
+  background: var(--cream);
+}
+
+.ql-thumb {
+  width: 38px;
+  min-width: 38px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(44,24,16,0.18);
+  display: block;
+}
+
+.ql-thumb-placeholder {
+  width: 38px;
+  min-width: 38px;
+  height: 54px;
+  background: var(--cream-mid);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.ql-book-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ql-title {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+
+.ql-author {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ql-stars {
+  font-size: 1rem;
+  color: var(--gold);
+  letter-spacing: 1px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.ql-stars .star-empty { color: var(--gold-empty); }
+
+.ql-badge {
+  display: none; /* hidden on mobile, shown on wider screens */
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.ql-badge.badge-finished {
+  background: var(--green-light);
+  color: var(--green-dark);
+  border: 1px solid var(--green);
+}
+.ql-badge.badge-reading {
+  background: var(--gold-bg);
+  color: #7a5a10;
+  border: 1px solid var(--gold);
+}
+
+.ql-arrow {
+  font-size: 1rem;
+  color: var(--text-light);
+  flex-shrink: 0;
+  transition: transform 0.15s, color 0.15s;
+}
+.quick-list-row:hover .ql-arrow {
+  transform: translateX(4px);
+  color: var(--green);
+}
+
+/* Highlight effect when jumping to a full card */
+@keyframes card-highlight {
+  0%   { box-shadow: 0 0 0 4px var(--gold), var(--shadow-card); background: var(--gold-bg); }
+  60%  { box-shadow: 0 0 0 4px var(--gold), var(--shadow-card); background: var(--gold-bg); }
+  100% { box-shadow: var(--shadow-card); background: var(--card-bg); }
+}
+
+.book-card.highlighted {
+  animation: card-highlight 1.8s ease-out forwards;
+}
+
+/* Show badge on wider screens */
+@media (min-width: 480px) {
+  .ql-badge { display: inline-block; }
+}
+
 /* ── Utility ─────────────────────────────────────────────────────────────── */
 
 .mt-16 { margin-top: 16px; }

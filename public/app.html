@@ -30,6 +30,18 @@
 
     <div id="library-error" class="error-msg"></div>
 
+    <!-- Quick-glance list: compact table of contents -->
+    <div id="quick-list-section" class="quick-list-section" style="display:none;">
+      <div class="quick-list-header">
+        <span class="quick-list-title">📋 &nbsp;All Your Books</span>
+        <span class="quick-list-count" id="ql-count"></span>
+      </div>
+      <div id="quick-list-rows">
+        <!-- Compact rows injected here -->
+      </div>
+    </div>
+
+    <!-- Full expanded cards -->
     <div id="book-list" class="book-list">
       <!-- Cards injected here -->
     </div>
@@ -487,17 +499,71 @@ async function loadBooks() {
 function renderBooks(books) {
   const list = document.getElementById('book-list');
   const empty = document.getElementById('empty-library');
+  const qlSection = document.getElementById('quick-list-section');
+  const qlRows = document.getElementById('quick-list-rows');
+  const qlCount = document.getElementById('ql-count');
   list.innerHTML = '';
+  qlRows.innerHTML = '';
 
   if (!books.length) {
     empty.style.display = '';
+    qlSection.style.display = 'none';
     return;
   }
   empty.style.display = 'none';
+  qlSection.style.display = '';
+  qlCount.textContent = books.length === 1 ? '1 book' : `${books.length} books`;
 
   books.forEach(book => {
+    // ── Quick-list row ────────────────────────────────────────────
+    const row = document.createElement('a');
+    row.className = 'quick-list-row';
+    row.setAttribute('href', `#book-card-${book.id}`);
+    row.setAttribute('role', 'row');
+    row.setAttribute('aria-label', `Jump to ${book.title}`);
+
+    const qlCover = book.cover_url
+      ? `<img src="${esc(book.cover_url)}" alt="" class="ql-thumb" loading="lazy">`
+      : `<div class="ql-thumb-placeholder">📖</div>`;
+
+    const qlStars = renderStarsHtml(book.rating || 0);
+    const qlBadgeClass = book.finished ? 'badge-finished' : 'badge-reading';
+    const qlBadgeText = book.finished ? '✓ Finished' : '📖 Reading';
+
+    row.innerHTML = `
+      ${qlCover}
+      <div class="ql-book-info">
+        <div class="ql-title">${esc(book.title)}</div>
+        <div class="ql-author">${esc(book.author)}</div>
+      </div>
+      <div class="ql-stars">${qlStars}</div>
+      <span class="ql-badge ${qlBadgeClass}">${qlBadgeText}</span>
+      <span class="ql-arrow">›</span>
+    `;
+
+    row.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = document.getElementById(`book-card-${book.id}`);
+      if (!target) return;
+      // Remove highlight from any previously highlighted card
+      document.querySelectorAll('.book-card.highlighted').forEach(c => {
+        c.classList.remove('highlighted');
+        void c.offsetWidth; // force reflow
+      });
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Small delay so scroll starts before highlight fires
+      setTimeout(() => {
+        target.classList.add('highlighted');
+        target.addEventListener('animationend', () => target.classList.remove('highlighted'), { once: true });
+      }, 250);
+    });
+
+    qlRows.appendChild(row);
+
+    // ── Full expanded card ────────────────────────────────────────
     const card = document.createElement('div');
     card.className = 'book-card';
+    card.id = `book-card-${book.id}`;
     card.setAttribute('role', 'article');
     card.setAttribute('aria-label', `${book.title} by ${book.author}`);
 
