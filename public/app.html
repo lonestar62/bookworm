@@ -137,19 +137,6 @@
         <input type="text" id="genre-input" placeholder="e.g. Historical Fiction, Mystery…">
       </div>
 
-      <div class="form-group">
-        <label for="notes-input">My Notes <small>(optional)</small></label>
-        <textarea id="notes-input" rows="3" placeholder="Anything else to remember…"></textarea>
-      </div>
-
-      <div class="form-group">
-        <label>Did you finish it?</label>
-        <div class="finish-row">
-          <button class="btn-finish" id="finished-yes" data-value="true">✅ Yes!</button>
-          <button class="btn-finish" id="finished-no" data-value="false">📖 Not yet</button>
-        </div>
-      </div>
-
       <button class="btn btn-primary" id="save-btn">💾 Save My Book</button>
       <div class="loading-wrap" id="save-loading">
         <div class="spinner"></div>
@@ -262,9 +249,8 @@ function resetWizard() {
   document.getElementById('review-text').value = '';
   document.getElementById('genre-input').value = '';
   document.getElementById('notes-input').value = '';
-  selectedRating = 0; finishedValue = null; enrichedData = null;
+  selectedRating = 0; enrichedData = null;
   updateStars('stars-row', 0);
-  clearFinish('finished-yes', 'finished-no');
   clearErr('step1-error'); clearErr('step3-error');
 }
 
@@ -457,8 +443,6 @@ function renderPreview(d) {
 document.getElementById('save-btn').addEventListener('click', async () => {
   clearErr('step3-error');
   if (!selectedRating) { showErr('step3-error', 'Please choose a star rating.'); return; }
-  if (finishedValue === null) { showErr('step3-error', 'Please say if you finished the book.'); return; }
-
   document.getElementById('save-btn').disabled = true;
   document.getElementById('save-loading').style.display = 'block';
 
@@ -475,7 +459,6 @@ document.getElementById('save-btn').addEventListener('click', async () => {
         funFact1: enrichedData.funFact1 || null,
         funFact2: enrichedData.funFact2 || null,
         rating: selectedRating,
-        finished: finishedValue,
         review: document.getElementById('review-text').value.trim() || null,
         genre: document.getElementById('genre-input').value.trim() || null,
         notes: document.getElementById('notes-input').value.trim() || null,
