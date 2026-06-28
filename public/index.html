@@ -5,19 +5,50 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jean's Book Club 📚</title>
   <link rel="stylesheet" href="/style.css">
+  <style>
+    /* Login-specific extras */
+    .login-body {
+      background: linear-gradient(160deg, #fdf6e9 0%, #f0ddb5 100%);
+    }
+    .login-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .login-card::before {
+      content: '📚';
+      position: absolute;
+      top: -20px;
+      right: -20px;
+      font-size: 8rem;
+      opacity: 0.06;
+      transform: rotate(15deg);
+      pointer-events: none;
+    }
+    .error-msg {
+      background: #fdf0ef;
+      border: 2px solid #c0392b;
+      border-radius: 10px;
+      color: #c0392b;
+      font-size: 1.05rem;
+      font-weight: 600;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: none;
+    }
+  </style>
 </head>
-<body>
+<body class="login-body">
   <div class="login-page">
     <div class="login-card">
-      <div class="login-logo">📚</div>
-      <h1>Jean's Book Club</h1>
-      <p class="subtitle">Sign in to see your books</p>
+      <span class="login-emoji">📚</span>
+      <h1 class="login-title">Jean's Book Club</h1>
+      <p class="login-subtitle">Welcome, Jean!<br>Type your email to sign in.</p>
 
       <div id="error-msg" class="error-msg" role="alert"></div>
 
       <form id="login-form" novalidate>
         <div class="form-group">
-          <label for="email">Enter your email address</label>
+          <label for="email">Your Email Address</label>
           <input
             type="email"
             id="email"
@@ -29,30 +60,30 @@
             aria-describedby="error-msg"
           >
         </div>
-        <button type="submit" class="btn btn-primary" id="signin-btn">
-          Sign In
+        <button type="submit" class="btn btn-primary login-btn" id="signin-btn">
+          Sign In →
         </button>
       </form>
     </div>
   </div>
 
   <script>
-    // If already logged in, redirect to app
+    // If already logged in, go straight to app
     fetch('/auth/status').then(r => r.json()).then(data => {
       if (data.loggedIn) window.location.href = '/app';
     });
 
     const form = document.getElementById('login-form');
     const emailInput = document.getElementById('email');
-    const errorMsg = document.getElementById('error-msg');
+    const errorEl = document.getElementById('error-msg');
     const signinBtn = document.getElementById('signin-btn');
 
     function showError(msg) {
-      errorMsg.textContent = msg;
-      errorMsg.classList.add('visible');
+      errorEl.textContent = msg;
+      errorEl.style.display = 'block';
     }
     function hideError() {
-      errorMsg.classList.remove('visible');
+      errorEl.style.display = 'none';
     }
 
     form.addEventListener('submit', async (e) => {
@@ -78,13 +109,13 @@
         } else {
           showError(data.error || 'Something went wrong. Please try again.');
           signinBtn.disabled = false;
-          signinBtn.textContent = 'Sign In';
+          signinBtn.textContent = 'Sign In →';
           emailInput.focus();
         }
-      } catch (err) {
+      } catch {
         showError('Could not connect. Please check your internet and try again.');
         signinBtn.disabled = false;
-        signinBtn.textContent = 'Sign In';
+        signinBtn.textContent = 'Sign In →';
       }
     });
   </script>
