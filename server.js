@@ -199,6 +199,35 @@ app.delete('/api/books/:id', requireAuth, (req, res) => {
   } catch(e) { res.status(500).json({ error: 'Could not delete book.' }); }
 });
 
+
+// GET /api/suggest?title=... — title-only: return possible (title, author) matches
+app.get('/api/suggest', requireAuth, async (req, res) => {
+  const { title, author } = req.query;
+  try {
+    const fetch = require('node-fetch');
+    let url;
+    if (title && !author) {
+      url = `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&limit=6&fields=title,author_name,first_publish_year`;
+    } else if (author && !title) {
+      url = `https://openlibrary.org/search.json?author=${encodeURIComponent(author)}&sort=editions&limit=8&fields=title,author_name,first_publish_year`;
+    } else {
+      return res.json([]);
+    }
+    const r = await fetch(url, { timeout: 6000 });
+    if (!r.ok) return res.json([]);
+    const data = await r.json();
+    const results = (data.docs || []).map(d => ({
+      title: d.title || '',
+      author: (d.author_name || [])[0] || '',
+      year: d.first_publish_year || '',
+    })).filter(d => d.title && d.author);
+    res.json(results);
+  } catch (e) {
+    console.warn('[suggest] error:', e.message);
+    res.json([]);
+  }
+});
+
 // ── App HTML (protected) ────────────────────────────────────────────────────
 
 app.get('/app', requireAuth, (req, res) => {

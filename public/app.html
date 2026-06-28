@@ -76,19 +76,30 @@
     <!-- Step 1 -->
     <div class="wizard-step active" id="step-1">
       <h2>What book are you adding?</h2>
+      <p class="step-hint">Fill in what you know — even just the title or just the author. I'll help you find the rest!</p>
       <div class="error-msg" id="step1-error"></div>
+
       <div class="form-group">
-        <label for="book-title">Book Title</label>
-        <input type="text" id="book-title" placeholder="e.g. The Great Gatsby">
+        <label for="book-title">Book Title <small>(or leave blank)</small></label>
+        <input type="text" id="book-title" placeholder="e.g. To Kill a Mockingbird" autocomplete="off">
       </div>
       <div class="form-group">
-        <label for="book-author">Author Name</label>
-        <input type="text" id="book-author" placeholder="e.g. F. Scott Fitzgerald">
+        <label for="book-author">Author Name <small>(or leave blank)</small></label>
+        <input type="text" id="book-author" placeholder="e.g. Harper Lee" autocomplete="off">
       </div>
+
       <button class="btn btn-primary" id="lookup-btn">🔍 Look It Up</button>
+
+      <!-- Suggestions panel -->
+      <div id="suggest-panel" class="suggest-panel" style="display:none;">
+        <div class="suggest-label" id="suggest-label"></div>
+        <div id="suggest-list" class="suggest-list"></div>
+        <button class="btn btn-secondary" id="suggest-cancel" style="margin-top:12px;">← Type differently</button>
+      </div>
+
       <div class="loading-wrap" id="lookup-loading">
         <div class="spinner"></div>
-        <p>Looking up your book…</p>
+        <p id="lookup-loading-text">Looking up your book…</p>
       </div>
     </div>
 
@@ -314,16 +325,101 @@ function clearFinish(yesId, noId) {
 });
 
 // ── Step 1 lookup ────────────────────────────────────────────────
+// ── Suggestion helpers ───────────────────────────────────────
+function showSuggestPanel(label, results, onPick) {
+  document.getElementById('lookup-btn').style.display = 'none';
+  const panel = document.getElementById('suggest-panel');
+  document.getElementById('suggest-label').textContent = label;
+  const list = document.getElementById('suggest-list');
+  list.innerHTML = '';
+  results.forEach(r => {
+    const btn = document.createElement('button');
+    btn.className = 'suggest-item';
+    btn.innerHTML = `<span class="sug-title">${esc(r.title)}</span><span class="sug-author">by ${esc(r.author)}${r.year ? ' (' + r.year + ')' : ''}</span>`;
+    btn.addEventListener('click', () => {
+      hideSuggestPanel();
+      onPick(r);
+    });
+    list.appendChild(btn);
+  });
+  panel.style.display = 'block';
+}
+
+function hideSuggestPanel() {
+  document.getElementById('suggest-panel').style.display = 'none';
+  document.getElementById('lookup-btn').style.display = '';
+}
+
+document.getElementById('suggest-cancel').addEventListener('click', hideSuggestPanel);
+
+// ── Main lookup handler ───────────────────────────────────────
 document.getElementById('lookup-btn').addEventListener('click', async () => {
   clearErr('step1-error');
   const title = document.getElementById('book-title').value.trim();
   const author = document.getElementById('book-author').value.trim();
-  if (!title) { showErr('step1-error', 'Please enter the book title.'); return; }
-  if (!author) { showErr('step1-error', 'Please enter the author name.'); return; }
+
+  if (!title && !author) {
+    showErr('step1-error', 'Please enter the book title, the author name, or both.');
+    return;
+  }
 
   document.getElementById('lookup-btn').disabled = true;
-  document.getElementById('lookup-loading').style.display = 'block';
+  const loadingEl = document.getElementById('lookup-loading');
+  const loadingText = document.getElementById('lookup-loading-text');
 
+  // ── Title only: fetch author suggestions ──────────────────
+  if (title && !author) {
+    loadingText.textContent = 'Searching for that title…';
+    loadingEl.style.display = 'block';
+    try {
+      const res = await fetch(`/api/suggest?title=${encodeURIComponent(title)}`);
+      const results = await res.json();
+      if (results.length === 0) {
+        showErr('step1-error', "I couldn't find that title. Please check the spelling or add the author's name.");
+      } else {
+        showSuggestPanel(
+          `I found ${results.length} book${results.length > 1 ? 's' : ''} matching that title — tap the one Jean read:`,
+          results,
+          (pick) => {
+            document.getElementById('book-title').value = pick.title;
+            document.getElementById('book-author').value = pick.author;
+            document.getElementById('lookup-btn').click();
+          }
+        );
+      }
+    } catch { showErr('step1-error', 'Could not search. Please try again.'); }
+    finally { document.getElementById('lookup-btn').disabled = false; loadingEl.style.display = 'none'; }
+    return;
+  }
+
+  // ── Author only: fetch their books ───────────────────────
+  if (author && !title) {
+    loadingText.textContent = `Looking up books by ${author}…`;
+    loadingEl.style.display = 'block';
+    try {
+      const res = await fetch(`/api/suggest?author=${encodeURIComponent(author)}`);
+      const results = await res.json();
+      if (results.length === 0) {
+        showErr('step1-error', `I couldn't find books by "${author}". Please check the spelling.`);
+      } else {
+        showSuggestPanel(
+          `Here are books by ${author} — tap the one Jean read:`,
+          results,
+          (pick) => {
+            document.getElementById('book-title').value = pick.title;
+            document.getElementById('book-author').value = pick.author;
+            document.getElementById('lookup-btn').click();
+          }
+        );
+      }
+    } catch { showErr('step1-error', 'Could not search. Please try again.'); }
+    finally { document.getElementById('lookup-btn').disabled = false; loadingEl.style.display = 'none'; }
+    return;
+  }
+
+  // ── Both provided: full enrichment ───────────────────────
+  loadingText.textContent = 'Looking up your book…';
+  loadingEl.style.display = 'block';
   try {
     const res = await fetch('/api/books/lookup', {
       method: 'POST',
@@ -338,7 +434,7 @@ document.getElementById('lookup-btn').addEventListener('click', async () => {
   } catch { showErr('step1-error', 'Could not connect. Please try again.'); }
   finally {
     document.getElementById('lookup-btn').disabled = false;
-    document.getElementById('lookup-loading').style.display = 'none';
+    loadingEl.style.display = 'none';
   }
 });
 
