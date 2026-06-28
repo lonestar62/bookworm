@@ -8,7 +8,7 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 async function fetchCover(title, author) {
   try {
     const q = `title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&limit=1&fields=cover_i`;
-    const res = await fetch(`https://openlibrary.org/search.json?${q}`, { timeout: 6000 });
+    const res = await fetch(`https://openlibrary.org/search.json?${q}`, { timeout: 10000 });
     if (!res.ok) return null;
     const data = await res.json();
     const coverId = data.docs?.[0]?.cover_i;

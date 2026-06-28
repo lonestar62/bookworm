@@ -228,6 +228,25 @@ app.get('/api/suggest', requireAuth, async (req, res) => {
   }
 });
 
+
+// POST /api/books/:id/cover — fetch and save cover for a book missing one
+app.post('/api/books/:id/cover', requireAuth, async (req, res) => {
+  try {
+    const book = db.prepare('SELECT id, title, author FROM books WHERE id=?').get(req.params.id);
+    if (!book) return res.status(404).json({ error: 'Book not found.' });
+    const { enrichBook } = require('./ai');
+    const result = await enrichBook(book.title, book.author);
+    if (result.coverUrl) {
+      db.prepare('UPDATE books SET cover_url=? WHERE id=?').run(result.coverUrl, book.id);
+      res.json({ success: true, coverUrl: result.coverUrl });
+    } else {
+      res.json({ success: false, error: 'No cover found for this book.' });
+    }
+  } catch(e) {
+    res.status(500).json({ error: 'Could not fetch cover.' });
+  }
+});
+
 // ── App HTML (protected) ────────────────────────────────────────────────────
 
 app.get('/app', requireAuth, (req, res) => {

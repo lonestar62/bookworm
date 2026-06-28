@@ -623,6 +623,29 @@ function fmtDate(dt) {
   catch { return dt; }
 }
 
+// ── Fetch cover on demand ────────────────────────────────────────
+async function fetchCover(id, el) {
+  el.textContent = '⏳';
+  el.style.cursor = 'default';
+  try {
+    const res = await fetch(`/api/books/${id}/cover`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success && data.coverUrl) {
+      const img = document.createElement('img');
+      img.src = data.coverUrl;
+      img.className = 'grid-cover';
+      img.loading = 'lazy';
+      el.replaceWith(img);
+    } else {
+      el.textContent = '📖';
+      el.title = 'No cover available';
+      el.style.cursor = 'default';
+    }
+  } catch {
+    el.textContent = '📖';
+  }
+}
+
 // ── Init ─────────────────────────────────────────────────────────
 loadBooks();
 </script>
