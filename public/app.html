@@ -170,6 +170,19 @@
         </div>
       </div>
 
+
+      <!-- Genre -->
+      <div class="form-group">
+        <label for="genre-input">Genre <span style="font-weight:400;font-size:0.9em;color:#888;">(optional)</span></label>
+        <input type="text" id="genre-input" placeholder="e.g. Historical Fiction, Mystery, Biography…">
+      </div>
+
+      <!-- Notes -->
+      <div class="form-group">
+        <label for="notes-input">Private Notes <span style="font-weight:400;font-size:0.9em;color:#888;">(optional)</span></label>
+        <textarea id="notes-input" rows="3" placeholder="Anything else you want to remember about this book…"></textarea>
+      </div>
+
       <!-- Save -->
       <button class="btn btn-primary" id="save-btn" style="margin-top:8px;">
         💾 &nbsp;Save My Book
@@ -229,6 +242,8 @@ function showWizard() {
   selectedRating = 0;
   finishedValue = null;
   enrichedData = null;
+  document.getElementById('genre-input').value = '';
+  document.getElementById('notes-input').value = '';
   updateStars(0);
   clearFinishedSelection();
   clearError('step1-error');
@@ -457,6 +472,8 @@ document.getElementById('save-btn').addEventListener('click', async () => {
     rating: selectedRating,
     finished: finishedValue,
     review: document.getElementById('review-text').value.trim() || null,
+    genre: document.getElementById('genre-input').value.trim() || null,
+    notes: document.getElementById('notes-input').value.trim() || null,
   };
 
   try {

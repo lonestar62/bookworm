@@ -1023,3 +1023,16 @@ textarea {
   .book-cover-placeholder { width: 68px; height: 100px; }
   .step-line { width: 32px; }
 }
+
+/* Genre + Notes */
+.genre-badge {
+  display: inline-block;
+  background: #e8f4ec;
+  color: #2a6041;
+  border: 1px solid #b5d9c3;
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}

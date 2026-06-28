@@ -114,7 +114,7 @@ app.post('/api/books/lookup', requireAuth, async (req, res) => {
 app.post('/api/books/save', requireAuth, (req, res) => {
   const {
     title, author, coverUrl, bookDescription, authorBio,
-    funFact1, funFact2, rating, finished, review,
+    funFact1, funFact2, rating, finished, review, genre, notes,
   } = req.body;
 
   if (!title || !author) {
@@ -126,8 +126,8 @@ app.post('/api/books/save', requireAuth, (req, res) => {
 
   try {
     const stmt = db.prepare(`
-      INSERT INTO books (title, author, cover_url, book_description, author_bio, fun_fact_1, fun_fact_2, rating, finished, review)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO books (title, author, cover_url, book_description, author_bio, fun_fact_1, fun_fact_2, rating, finished, review, genre, notes)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     const result = stmt.run(
       title,
@@ -140,6 +140,8 @@ app.post('/api/books/save', requireAuth, (req, res) => {
       parseInt(rating, 10),
       finished === 'true' || finished === true || finished === 1 ? 1 : 0,
       review || null,
+      genre || null,
+      notes || null,
     );
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (err) {
