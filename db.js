@@ -26,8 +26,18 @@ db.exec(`
     rating INTEGER,
     finished INTEGER DEFAULT 1,
     review TEXT,
+    genre TEXT,
+    read_on TEXT,
     added_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);
+
+// Safe migrations — add columns that may not exist in older DBs
+for (const col of [
+  'ALTER TABLE books ADD COLUMN genre TEXT',
+  'ALTER TABLE books ADD COLUMN read_on TEXT',
+]) {
+  try { db.exec(col); } catch (_) { /* already exists */ }
+}
 
 module.exports = db;

@@ -21,6 +21,12 @@
     <div class="toolbar">
       <button id="add-btn" class="btn-primary">➕ Add a Book</button>
       <span id="book-count" class="count-label"></span>
+      <div class="sort-bar">
+        <span class="sort-label">Sort:</span>
+        <button class="sort-btn active" data-field="read_on" data-dir="desc">📅 Read On</button>
+        <button class="sort-btn" data-field="author" data-dir="asc">👤 Author</button>
+        <button class="sort-btn" data-field="genre" data-dir="asc">🏷 Genre</button>
+      </div>
     </div>
     <div id="lib-error" class="error-box" style="display:none;"></div>
 
@@ -35,6 +41,7 @@
               <th style="width:150px">Author</th>
               <th style="width:120px">Genre</th>
               <th style="width:110px">Rating</th>
+              <th style="width:110px">Read On</th>
               <th style="width:220px">Jean's Review</th>
               <th style="width:220px">About the Book</th>
               <th style="width:220px">About the Author</th>
@@ -96,13 +103,17 @@
       <h2>What did you think?</h2>
       <div id="s3-error" class="error-box" style="display:none;"></div>
       <div class="field">
-        <label>Your Rating</label>
-        <div class="star-row" id="add-stars">
-          <button class="star" data-v="1">★</button>
-          <button class="star" data-v="2">★</button>
-          <button class="star" data-v="3">★</button>
-          <button class="star" data-v="4">★</button>
-          <button class="star" data-v="5">★</button>
+        <label>Your Rating &amp; When You Read It</label>
+        <div class="rating-date-row">
+          <div class="star-row" id="add-stars">
+            <button class="star" data-v="1">★</button>
+            <button class="star" data-v="2">★</button>
+            <button class="star" data-v="3">★</button>
+            <button class="star" data-v="4">★</button>
+            <button class="star" data-v="5">★</button>
+          </div>
+          <button type="button" id="add-read-on-btn" class="btn-date-pick">📅 Pick date read</button>
+          <span id="add-read-on-display" class="date-display"></span>
         </div>
       </div>
       <div class="field">
@@ -130,19 +141,43 @@
       <div class="field"><label>Author</label><input id="edit-author" type="text"></div>
       <div class="field"><label>Genre</label><input id="edit-genre" type="text"></div>
       <div class="field">
-        <label>Rating</label>
-        <div class="star-row" id="edit-stars">
-          <button class="star" data-v="1">★</button>
-          <button class="star" data-v="2">★</button>
-          <button class="star" data-v="3">★</button>
-          <button class="star" data-v="4">★</button>
-          <button class="star" data-v="5">★</button>
+        <label>Rating &amp; Date Read</label>
+        <div class="rating-date-row">
+          <div class="star-row" id="edit-stars">
+            <button class="star" data-v="1">★</button>
+            <button class="star" data-v="2">★</button>
+            <button class="star" data-v="3">★</button>
+            <button class="star" data-v="4">★</button>
+            <button class="star" data-v="5">★</button>
+          </div>
+          <button type="button" id="edit-read-on-btn" class="btn-date-pick">📅 Pick date read</button>
+          <span id="edit-read-on-display" class="date-display"></span>
         </div>
       </div>
       <div class="field"><label>Review</label><textarea id="edit-review" rows="4"></textarea></div>
       <div style="display:flex;gap:12px;margin-top:20px;">
         <button id="edit-save" class="btn-primary">💾 Save</button>
         <button id="edit-cancel" class="btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALENDAR MODAL -->
+  <div id="cal-overlay" style="display:none;">
+    <div class="modal cal-modal">
+      <div class="cal-header">
+        <button id="cal-prev" class="cal-nav">&#8249;</button>
+        <span id="cal-title" class="cal-title"></span>
+        <button id="cal-next" class="cal-nav">&#8250;</button>
+      </div>
+      <div class="cal-weekdays">
+        <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+      </div>
+      <div id="cal-grid" class="cal-grid"></div>
+      <div class="cal-footer">
+        <button id="cal-today" class="btn-secondary">Today</button>
+        <button id="cal-clear" class="btn-secondary">Clear</button>
+        <button id="cal-cancel" class="btn-secondary">Cancel</button>
       </div>
     </div>
   </div>
@@ -154,6 +189,11 @@
 let enriched = null;   // result from /api/lookup
 let addRating = 0;
 let editRating = 0;
+let addReadOn = null;
+let editReadOn = null;
+let currentBooks = [];
+let sortField = 'read_on';
+let sortDir = 'desc';
 
 // ── Init ───────────────────────────────────────────────────────
 fetch('/auth/status').then(r=>r.json()).then(d=>{ if(!d.loggedIn) location.href='/'; });
@@ -192,8 +232,39 @@ async function loadBooks() {
   }
 }
 
+// ── Sort ───────────────────────────────────────────────────────
+document.querySelectorAll('.sort-btn').forEach(btn => {
+  btn.onclick = () => {
+    const f = btn.dataset.field;
+    if (sortField === f) {
+      sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      btn.dataset.dir = sortDir;
+    } else {
+      document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+      sortField = f;
+      sortDir = btn.dataset.dir || 'asc';
+    }
+    btn.classList.add('active');
+    renderGrid(currentBooks);
+  };
+});
+
+function sortBooks(books) {
+  return [...books].sort((a, b) => {
+    let av = a[sortField] || '';
+    let bv = b[sortField] || '';
+    // null/empty always last
+    if (!av && bv) return 1;
+    if (av && !bv) return -1;
+    if (!av && !bv) return 0;
+    const cmp = av < bv ? -1 : av > bv ? 1 : 0;
+    return sortDir === 'asc' ? cmp : -cmp;
+  });
+}
+
 // ── Render grid ────────────────────────────────────────────────
 function renderGrid(books) {
+  currentBooks = books;
   const wrap  = document.getElementById('grid-wrap');
   const tbody = document.getElementById('grid-body');
   const empty = document.getElementById('empty-msg');
@@ -212,12 +283,13 @@ function renderGrid(books) {
   empty.style.display='none';
   count.textContent = books.length + (books.length===1?' book':' books');
 
-  books.forEach(b => {
+  sortBooks(books).forEach(b => {
     const tr = document.createElement('tr');
     const cover = b.cover_url
       ? `<img src="${x(b.cover_url)}" class="cover-img" alt="">`
       : `<span class="cover-ph">📖</span>`;
     const stars = [1,2,3,4,5].map(i=>`<span class="${i<=(b.rating||0)?'son':'soff'}">★</span>`).join('');
+    const readOnFmt = b.read_on ? fmtDateShort(b.read_on) : '';
     tr.innerHTML = `
       <td class="td-act">
         <button class="btn-edit" onclick="openEdit(${b.id})">✏️</button>
@@ -226,8 +298,9 @@ function renderGrid(books) {
       <td class="td-cover">${cover}</td>
       <td class="td-text"><strong>${x(b.title)}</strong></td>
       <td class="td-text"><em>${x(b.author)}</em></td>
-      <td class="td-text">${x(b.genre||''  )}</td>
+      <td class="td-text">${x(b.genre||'')}</td>
       <td class="td-stars">${stars}</td>
+      <td class="td-date">${x(readOnFmt)}</td>
       <td class="td-long">${x(b.review||'')}</td>
       <td class="td-long">${x(b.book_description||'')}</td>
       <td class="td-long">${x(b.author_bio||'')}</td>
@@ -250,8 +323,10 @@ function resetWizard() {
   document.getElementById('s3-error').style.display='none';
   document.getElementById('suggest-box').style.display='none';
   document.getElementById('lookup-btn').style.display='';
-  addRating=0; enriched=null;
+  addRating=0; enriched=null; addReadOn=null;
   setStars('add-stars',0);
+  document.getElementById('add-read-on-display').textContent='';
+  document.getElementById('add-read-on-btn').textContent='📅 Pick date read';
 }
 
 function goStep(n) {
@@ -380,6 +455,7 @@ document.getElementById('save-btn').onclick = async () => {
       authorBio:enriched.authorBio||null, funFact1:enriched.funFact1||null, funFact2:enriched.funFact2||null,
       rating:addRating, review:document.getElementById('inp-review').value.trim()||null,
       genre:document.getElementById('inp-genre').value.trim()||null,
+      readOn:addReadOn||null,
     })});
     const d=await r.json();
     if(!r.ok||!d.success){errEl.textContent=d.error||'Save failed.';errEl.style.display='block';return;}
@@ -387,6 +463,16 @@ document.getElementById('save-btn').onclick = async () => {
   } catch(e){errEl.textContent='Error: '+e.message;errEl.style.display='block';}
   finally{document.getElementById('save-btn').disabled=false;spin.style.display='none';}
 };
+
+// Read-on picker for add
+document.getElementById('add-read-on-btn').onclick = () =>
+  openCalendar(addReadOn, iso => {
+    addReadOn = iso;
+    const btn = document.getElementById('add-read-on-btn');
+    const disp = document.getElementById('add-read-on-display');
+    if (iso) { btn.textContent = '📅 Change date'; disp.textContent = fmtDateShort(iso); }
+    else { btn.textContent = '📅 Pick date read'; disp.textContent = ''; }
+  });
 
 // ── Edit ───────────────────────────────────────────────────────
 async function openEdit(id) {
@@ -397,11 +483,24 @@ async function openEdit(id) {
   document.getElementById('edit-genre').value=b.genre||'';
   document.getElementById('edit-review').value=b.review||'';
   editRating=b.rating||0;
+  editReadOn=b.read_on||null;
   setStars('edit-stars',editRating);
+  const editBtn = document.getElementById('edit-read-on-btn');
+  const editDisp = document.getElementById('edit-read-on-display');
+  if (editReadOn) { editBtn.textContent='📅 Change date'; editDisp.textContent=fmtDateShort(editReadOn); }
+  else { editBtn.textContent='📅 Pick date read'; editDisp.textContent=''; }
   document.getElementById('edit-error').style.display='none';
   document.getElementById('edit-overlay').style.display='flex';
 }
 document.getElementById('edit-cancel').onclick=()=>document.getElementById('edit-overlay').style.display='none';
+document.getElementById('edit-read-on-btn').onclick = () =>
+  openCalendar(editReadOn, iso => {
+    editReadOn = iso;
+    const btn = document.getElementById('edit-read-on-btn');
+    const disp = document.getElementById('edit-read-on-display');
+    if (iso) { btn.textContent='📅 Change date'; disp.textContent=fmtDateShort(iso); }
+    else { btn.textContent='📅 Pick date read'; disp.textContent=''; }
+  });
 document.getElementById('edit-save').onclick=async()=>{
   const id=document.getElementById('edit-id').value;
   const title=document.getElementById('edit-title').value.trim();
@@ -412,6 +511,7 @@ document.getElementById('edit-save').onclick=async()=>{
   const r=await fetch('/api/books/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({
     title,author,genre:document.getElementById('edit-genre').value.trim()||null,
     rating:editRating||null,review:document.getElementById('edit-review').value.trim()||null,
+    readOn:editReadOn||null,
   })});
   const d=await r.json();
   if(!r.ok||!d.success){errEl.textContent=d.error||'Save failed.';errEl.style.display='block';return;}
@@ -428,9 +528,55 @@ async function delBook(id,title) {
   loadBooks();
 }
 
+// ── Calendar ───────────────────────────────────────────────────
+let calYear, calMonth, calCallback, calSelected;
+
+function openCalendar(currentVal, callback) {
+  calCallback = callback;
+  calSelected = currentVal || null;
+  const d = currentVal ? new Date(currentVal + 'T00:00:00') : new Date();
+  calYear = d.getFullYear();
+  calMonth = d.getMonth();
+  renderCal();
+  document.getElementById('cal-overlay').style.display='flex';
+}
+
+function renderCal() {
+  const title = new Date(calYear, calMonth, 1).toLocaleDateString('en-US', {month:'long', year:'numeric'});
+  document.getElementById('cal-title').textContent = title;
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  for (let i = 0; i < firstDay; i++) {
+    const blank = document.createElement('span');
+    blank.className = 'cal-day blank';
+    grid.appendChild(blank);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const iso = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const btn = document.createElement('button');
+    btn.className = 'cal-day' + (iso === calSelected ? ' selected' : '');
+    btn.textContent = d;
+    btn.onclick = () => { calCallback(iso); document.getElementById('cal-overlay').style.display='none'; };
+    grid.appendChild(btn);
+  }
+}
+
+document.getElementById('cal-prev').onclick = () => { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCal(); };
+document.getElementById('cal-next').onclick = () => { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCal(); };
+document.getElementById('cal-today').onclick = () => {
+  const t = new Date();
+  const iso = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+  calCallback(iso); document.getElementById('cal-overlay').style.display='none';
+};
+document.getElementById('cal-clear').onclick = () => { calCallback(null); document.getElementById('cal-overlay').style.display='none'; };
+document.getElementById('cal-cancel').onclick = () => document.getElementById('cal-overlay').style.display='none';
+
 // ── Helpers ────────────────────────────────────────────────────
 function x(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function fmtDate(dt){if(!dt)return'';try{return new Date(dt.replace(' ','T')).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}catch{return dt;}}
+function fmtDateShort(iso){if(!iso)return'';try{const[y,m,d]=iso.split('-');return new Date(+y,+m-1,+d).toLocaleDateString('en-US',{month:'short',year:'numeric'});}catch{return iso;}}
 </script>
 </body>
 </html>

@@ -99,21 +99,21 @@ app.get('/api/books', requireAuth, (req, res) => {
 });
 
 app.post('/api/books', requireAuth, (req, res) => {
-  const { title, author, coverUrl, bookDescription, authorBio, funFact1, funFact2, rating, review, genre } = req.body;
+  const { title, author, coverUrl, bookDescription, authorBio, funFact1, funFact2, rating, review, genre, readOn } = req.body;
   if (!title || !author) return res.status(400).json({ error: 'Title and author required.' });
   try {
-    const r = db.prepare(`INSERT INTO books (title,author,cover_url,book_description,author_bio,fun_fact_1,fun_fact_2,rating,review,genre)
-      VALUES (?,?,?,?,?,?,?,?,?,?)`).run(title, author, coverUrl||null, bookDescription||null, authorBio||null, funFact1||null, funFact2||null, rating ? parseInt(rating) : null, review||null, genre||null);
+    const r = db.prepare(`INSERT INTO books (title,author,cover_url,book_description,author_bio,fun_fact_1,fun_fact_2,rating,review,genre,read_on)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?)`).run(title, author, coverUrl||null, bookDescription||null, authorBio||null, funFact1||null, funFact2||null, rating ? parseInt(rating) : null, review||null, genre||null, readOn||null);
     res.json({ success: true, id: r.lastInsertRowid });
   } catch (e) { res.status(500).json({ error: 'Could not save.' }); }
 });
 
 app.put('/api/books/:id', requireAuth, (req, res) => {
-  const { title, author, genre, rating, review } = req.body;
+  const { title, author, genre, rating, review, readOn } = req.body;
   if (!title || !author) return res.status(400).json({ error: 'Title and author required.' });
   try {
-    db.prepare('UPDATE books SET title=?,author=?,genre=?,rating=?,review=? WHERE id=?')
-      .run(title, author, genre||null, rating ? parseInt(rating) : null, review||null, req.params.id);
+    db.prepare('UPDATE books SET title=?,author=?,genre=?,rating=?,review=?,read_on=? WHERE id=?')
+      .run(title, author, genre||null, rating ? parseInt(rating) : null, review||null, readOn||null, req.params.id);
     res.json({ success: true });
   } catch { res.status(500).json({ error: 'Could not update.' }); }
 });
