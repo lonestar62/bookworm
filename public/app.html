@@ -416,7 +416,7 @@ function renderBooks(books) {
     const coverHtml = book.cover_url
       ? `<img src="${escHtml(book.cover_url)}" alt="" class="book-cover" loading="lazy">`
       : `<div class="book-cover-placeholder">📖</div>`;
-    const snippet = (book.review || '').substring(0, 100);
+    const snippet = null; // full review shown in expanded detail below
     const dateStr = formatDate(book.added_at);
     const finishedBadge = book.finished
       ? `<span class="book-finished-badge">✓ Finished</span>`
@@ -434,20 +434,12 @@ function renderBooks(books) {
           <div class="book-date">Added ${dateStr}</div>
         </div>
       </div>
-      <div class="book-detail" id="detail-${book.id}">
+      <div class="book-detail open" id="detail-${book.id}">
         ${renderDetailContent(book)}
       </div>
     `;
 
-    // Toggle expand
-    function toggleDetail() {
-      const detail = document.getElementById('detail-' + book.id);
-      detail.classList.toggle('open');
-    }
-    card.addEventListener('click', toggleDetail);
-    card.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleDetail(); }
-    });
+    // Cards always expanded — no toggle needed
 
     list.appendChild(card);
   });
@@ -489,7 +481,7 @@ function renderDetailContent(book) {
         </ul>
       </div>`;
   }
-  return sections || '<p style="color:#888; font-size:1rem;">Tap again to collapse.</p>';
+  return sections || '';
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
