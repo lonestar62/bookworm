@@ -23,7 +23,8 @@ async function fetchGeminiEnrichment(title, author) {
   const prompt = `You are helping an 88-year-old book lover learn about a book she just read.
 Book: "${title}" by ${author}
 
-Respond with a JSON object with exactly these four keys:
+Respond with a JSON object with exactly these five keys:
+- "genre": the primary genre(s) of this book, short (e.g. "Historical Fiction", "Mystery", "Classic Literature", "Romance")
 - "description": 2-3 warm, friendly sentences about what this book is about and why readers love it
 - "author_bio": 2-3 warm sentences about ${author}'s life and writing style  
 - "fun_fact_1": one delightful fun fact about ${author} or this book
@@ -54,6 +55,7 @@ Respond with a JSON object with exactly these four keys:
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
     const parsed = JSON.parse(text);
     return {
+      genre: parsed.genre || null,
       description: parsed.description || null,
       authorBio: parsed.author_bio || null,
       funFact1: parsed.fun_fact_1 || null,
@@ -71,6 +73,7 @@ async function enrichBook(title, author) {
     fetchCover(title, author),
   ]);
   return {
+    genre: gemini.genre,
     description: gemini.description,
     coverUrl,
     authorBio: gemini.authorBio,

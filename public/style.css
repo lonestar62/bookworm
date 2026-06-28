@@ -509,3 +509,15 @@ body {
   color: #5a4a3a;
   font-style: italic;
 }
+
+.preview-genre-pill {
+  display: inline-block;
+  background: #e8f4ec;
+  color: #1e5c35;
+  border: 1px solid #b5d9c3;
+  border-radius: 20px;
+  padding: 3px 12px;
+  font-size: .85rem;
+  font-weight: 600;
+  margin-top: 6px;
+}

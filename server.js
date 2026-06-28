@@ -97,6 +97,7 @@ app.post('/api/books/lookup', requireAuth, async (req, res) => {
     res.json({
       title,
       author,
+      genre: enriched.genre,
       description: enriched.description,
       coverUrl: enriched.coverUrl,
       authorBio: enriched.authorBio,

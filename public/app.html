@@ -429,6 +429,8 @@ document.getElementById('lookup-btn').addEventListener('click', async () => {
     const data = await res.json();
     if (!res.ok) { showErr('step1-error', data.error || 'Something went wrong.'); return; }
     enrichedData = data;
+    // Pre-fill genre from AI
+    if (data.genre) document.getElementById('genre-input').value = data.genre;
     renderPreview(data);
     gotoStep(2);
   } catch { showErr('step1-error', 'Could not connect. Please try again.'); }
@@ -442,7 +444,8 @@ function renderPreview(d) {
   const cover = d.coverUrl
     ? `<img src="${esc(d.coverUrl)}" class="preview-img" alt="">`
     : `<div class="preview-img-placeholder">📖</div>`;
-  let html = `<div class="preview-top">${cover}<div><div class="preview-title">${esc(d.title)}</div><div class="preview-author">by ${esc(d.author)}</div></div></div>`;
+  const genrePill = d.genre ? `<span class="preview-genre-pill">${esc(d.genre)}</span>` : '';
+  let html = `<div class="preview-top">${cover}<div><div class="preview-title">${esc(d.title)}</div><div class="preview-author">by ${esc(d.author)}</div>${genrePill}</div></div>`;
   if (d.description) html += `<div class="preview-section"><strong>About This Book</strong><p>${esc(d.description)}</p></div>`;
   if (d.authorBio) html += `<div class="preview-section"><strong>About the Author</strong><p>${esc(d.authorBio)}</p></div>`;
   const facts = [d.funFact1, d.funFact2].filter(Boolean);
