@@ -129,3 +129,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .form-group input{width:100%;padding:14px 16px;border:2px solid #d4c9b5;border-radius:10px;font-size:1.05rem;font-family:inherit;background:#fff;color:#2c1810;}
 .form-group input:focus{outline:none;border-color:#2a6041;}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:10px;padding:12px 26px;font-size:1rem;font-weight:600;cursor:pointer;}
+
+/* ── Sort bar ──────────────────────────────────────────────── */
+.sort-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto;}
+.sort-label{font-size:.85rem;color:#666;font-weight:600;}
+.sort-btn{background:#f0ece4;border:2px solid #d4c9b5;border-radius:8px;padding:5px 12px;font-size:.82rem;font-weight:600;cursor:pointer;color:#2c1810;transition:all .15s;}
+.sort-btn:hover{background:#e0d9ce;}
+.sort-btn.active{background:#2a6041;color:#fff;border-color:#2a6041;}
+
+/* ── Rating + date row ─────────────────────────────────────── */
+.rating-date-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.btn-date-pick{background:#f0ece4;border:2px solid #d4c9b5;border-radius:8px;padding:7px 14px;font-size:.9rem;font-weight:600;cursor:pointer;color:#2c1810;white-space:nowrap;transition:all .15s;}
+.btn-date-pick:hover{background:#e0d9ce;}
+.date-display{font-size:.95rem;font-weight:600;color:#2a6041;}
+
+/* ── Calendar modal ────────────────────────────────────────── */
+#cal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:300;padding:20px;}
+.cal-modal{max-width:320px;padding:24px;}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.cal-title{font-size:1.05rem;font-weight:700;color:#2a6041;}
+.cal-nav{background:none;border:none;font-size:1.6rem;cursor:pointer;color:#2a6041;padding:0 6px;line-height:1;}
+.cal-nav:hover{opacity:.7;}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:.75rem;font-weight:700;color:#888;margin-bottom:6px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-day{background:none;border:none;border-radius:6px;padding:7px 0;font-size:.88rem;cursor:pointer;color:#2c1810;text-align:center;}
+.cal-day:hover:not(.blank){background:#e8f4ec;}
+.cal-day.selected{background:#2a6041;color:#fff;font-weight:700;}
+.cal-day.blank{visibility:hidden;}
+.cal-footer{display:flex;gap:8px;margin-top:14px;justify-content:center;}
