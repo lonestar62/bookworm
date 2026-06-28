@@ -3,48 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-store">
   <title>Jean's Book Club 📚</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
 <header class="site-header">
-  <div class="header-inner">
-    <div class="header-title">📚 Jean's Book Club</div>
-    <button class="btn-signout" id="logout-btn">Sign Out</button>
-  </div>
+  <span class="site-title">📚 Jean's Book Club</span>
+  <button id="logout-btn" class="btn-logout">Sign Out</button>
 </header>
 
-<div class="page-wrap">
+<div class="page">
 
-  <!-- ── LIBRARY VIEW ── -->
+  <!-- LIBRARY -->
   <div id="view-library">
     <div class="toolbar">
-      <button class="btn btn-primary" id="add-book-btn">➕ Add a Book</button>
-      <span class="book-count-label" id="book-count"></span>
+      <button id="add-btn" class="btn-primary">➕ Add a Book</button>
+      <span id="book-count" class="count-label"></span>
     </div>
+    <div id="lib-error" class="error-box" style="display:none;"></div>
 
-    <div id="library-error" class="error-msg"></div>
-
-    <!-- Data Grid -->
     <div id="grid-wrap" style="display:none;">
       <div class="grid-scroll">
-        <table class="grid-table" id="grid-table">
+        <table class="grid">
           <thead>
             <tr>
-              <th class="col-actions">Actions</th>
-              <th class="col-cover">Cover</th>
-              <th class="col-title">Title</th>
-              <th class="col-author">Author</th>
-              <th class="col-genre">Genre</th>
-              <th class="col-rating">Rating</th>
-              <th class="col-review">Jean's Review</th>
-              <th class="col-desc">About the Book</th>
-              <th class="col-bio">About the Author</th>
-              <th class="col-fact">Fun Fact 1</th>
-              <th class="col-fact">Fun Fact 2</th>
-              <th class="col-date">Date Added</th>
-              <th class="col-actions">Actions</th>
+              <th style="width:60px">Act</th>
+              <th style="width:70px">Cover</th>
+              <th style="width:180px">Title</th>
+              <th style="width:150px">Author</th>
+              <th style="width:120px">Genre</th>
+              <th style="width:110px">Rating</th>
+              <th style="width:220px">Jean's Review</th>
+              <th style="width:220px">About the Book</th>
+              <th style="width:220px">About the Author</th>
+              <th style="width:180px">Fun Fact 1</th>
+              <th style="width:180px">Fun Fact 2</th>
+              <th style="width:110px">Date Added</th>
             </tr>
           </thead>
           <tbody id="grid-body"></tbody>
@@ -52,588 +48,389 @@
       </div>
     </div>
 
-    <div id="empty-library" class="empty-library" style="display:none;">
-      <div class="empty-icon">📖</div>
-      <p>No books yet! Add your first book above.</p>
+    <div id="empty-msg" style="display:none;" class="empty-msg">
+      <div>📖</div>
+      <p>No books yet — add your first one!</p>
     </div>
   </div>
 
-  <!-- ── ADD BOOK WIZARD ── -->
+  <!-- ADD WIZARD -->
   <div id="view-wizard" style="display:none;">
-    <div class="wizard-header">
-      <button class="btn-back" id="wizard-back">← Back to My Books</button>
-    </div>
-
-    <!-- Step dots -->
-    <div class="step-dots">
-      <div class="step-dot active" id="dot-1"></div>
-      <div class="step-line"></div>
-      <div class="step-dot" id="dot-2"></div>
-      <div class="step-line"></div>
-      <div class="step-dot" id="dot-3"></div>
-    </div>
+    <button id="back-btn" class="btn-back">← Back to My Books</button>
 
     <!-- Step 1 -->
-    <div class="wizard-step active" id="step-1">
+    <div id="step-1" class="step active">
       <h2>What book are you adding?</h2>
-      <p class="step-hint">Fill in what you know — even just the title or just the author. I'll help you find the rest!</p>
-      <div class="error-msg" id="step1-error"></div>
-
-      <div class="form-group">
-        <label for="book-title">Book Title <small>(or leave blank)</small></label>
-        <input type="text" id="book-title" placeholder="e.g. To Kill a Mockingbird" autocomplete="off">
+      <p class="hint">Type just the title, just the author, or both — I'll help fill in the rest!</p>
+      <div id="s1-error" class="error-box" style="display:none;"></div>
+      <div class="field">
+        <label>Book Title <small>(or leave blank)</small></label>
+        <input id="inp-title" type="text" placeholder="e.g. Gone with the Wind">
       </div>
-      <div class="form-group">
-        <label for="book-author">Author Name <small>(or leave blank)</small></label>
-        <input type="text" id="book-author" placeholder="e.g. Harper Lee" autocomplete="off">
+      <div class="field">
+        <label>Author <small>(or leave blank)</small></label>
+        <input id="inp-author" type="text" placeholder="e.g. Margaret Mitchell">
       </div>
-
-      <button class="btn btn-primary" id="lookup-btn">🔍 Look It Up</button>
-
-      <!-- Suggestions panel -->
-      <div id="suggest-panel" class="suggest-panel" style="display:none;">
-        <div class="suggest-label" id="suggest-label"></div>
-        <div id="suggest-list" class="suggest-list"></div>
-        <button class="btn btn-secondary" id="suggest-cancel" style="margin-top:12px;">← Type differently</button>
+      <button id="lookup-btn" class="btn-primary">🔍 Look It Up</button>
+      <div id="lookup-spinner" class="spinner-wrap" style="display:none;">
+        <div class="spinner"></div><span>Searching…</span>
       </div>
-
-      <div class="loading-wrap" id="lookup-loading">
-        <div class="spinner"></div>
-        <p id="lookup-loading-text">Looking up your book…</p>
+      <!-- Suggestions -->
+      <div id="suggest-box" class="suggest-box" style="display:none;">
+        <p id="suggest-label" class="suggest-label"></p>
+        <div id="suggest-list"></div>
+        <button id="suggest-cancel" class="btn-secondary" style="margin-top:12px;">← Search differently</button>
       </div>
     </div>
 
-    <!-- Step 2 -->
-    <div class="wizard-step" id="step-2">
+    <!-- Step 2: Preview -->
+    <div id="step-2" class="step">
       <h2>Here's what I found!</h2>
-      <div id="preview-card" class="preview-card"></div>
-      <button class="btn btn-primary" id="to-step3-btn">✍️ Write My Review</button>
-      <button class="btn btn-secondary" id="back-to-step1" style="margin-top:12px;">← Change Book</button>
+      <div id="preview-area"></div>
+      <button id="to-review-btn" class="btn-primary">✍️ Write My Review</button>
+      <button id="back-to-s1" class="btn-secondary" style="margin-top:12px;">← Change Book</button>
     </div>
 
-    <!-- Step 3 -->
-    <div class="wizard-step" id="step-3">
+    <!-- Step 3: Review -->
+    <div id="step-3" class="step">
       <h2>What did you think?</h2>
-      <div class="error-msg" id="step3-error"></div>
-
-      <div class="form-group">
+      <div id="s3-error" class="error-box" style="display:none;"></div>
+      <div class="field">
         <label>Your Rating</label>
-        <div class="stars-row" id="stars-row">
-          <button class="star-btn" data-rating="1">★</button>
-          <button class="star-btn" data-rating="2">★</button>
-          <button class="star-btn" data-rating="3">★</button>
-          <button class="star-btn" data-rating="4">★</button>
-          <button class="star-btn" data-rating="5">★</button>
+        <div class="star-row" id="add-stars">
+          <button class="star" data-v="1">★</button>
+          <button class="star" data-v="2">★</button>
+          <button class="star" data-v="3">★</button>
+          <button class="star" data-v="4">★</button>
+          <button class="star" data-v="5">★</button>
         </div>
       </div>
-
-      <div class="form-group">
-        <label for="review-text">What did you think?</label>
-        <textarea id="review-text" rows="5" placeholder="Tell me what you thought…"></textarea>
+      <div class="field">
+        <label>What did you think?</label>
+        <textarea id="inp-review" rows="5" placeholder="Tell me about this book…"></textarea>
       </div>
-
-      <div class="form-group">
-        <label for="genre-input">Genre <small>(optional)</small></label>
-        <input type="text" id="genre-input" placeholder="e.g. Historical Fiction, Mystery…">
+      <div class="field">
+        <label>Genre <small>(auto-filled, you can change it)</small></label>
+        <input id="inp-genre" type="text" placeholder="e.g. Historical Fiction">
       </div>
-
-      <button class="btn btn-primary" id="save-btn">💾 Save My Book</button>
-      <div class="loading-wrap" id="save-loading">
-        <div class="spinner"></div>
-        <p>Saving…</p>
+      <button id="save-btn" class="btn-primary" style="background:#1e7e34;">💾 Save My Book</button>
+      <div id="save-spinner" class="spinner-wrap" style="display:none;">
+        <div class="spinner"></div><span>Saving…</span>
       </div>
     </div>
   </div>
 
-  <!-- ── EDIT MODAL ── -->
+  <!-- EDIT MODAL -->
   <div id="edit-overlay" style="display:none;">
-    <div class="edit-modal">
+    <div class="modal">
       <h2>Edit Book</h2>
-      <div class="error-msg" id="edit-error"></div>
+      <div id="edit-error" class="error-box" style="display:none;"></div>
       <input type="hidden" id="edit-id">
-
-      <div class="form-group">
-        <label>Title</label>
-        <input type="text" id="edit-title">
-      </div>
-      <div class="form-group">
-        <label>Author</label>
-        <input type="text" id="edit-author">
-      </div>
-      <div class="form-group">
-        <label>Genre</label>
-        <input type="text" id="edit-genre" placeholder="optional">
-      </div>
-      <div class="form-group">
+      <div class="field"><label>Title</label><input id="edit-title" type="text"></div>
+      <div class="field"><label>Author</label><input id="edit-author" type="text"></div>
+      <div class="field"><label>Genre</label><input id="edit-genre" type="text"></div>
+      <div class="field">
         <label>Rating</label>
-        <div class="stars-row" id="edit-stars-row">
-          <button class="star-btn" data-rating="1">★</button>
-          <button class="star-btn" data-rating="2">★</button>
-          <button class="star-btn" data-rating="3">★</button>
-          <button class="star-btn" data-rating="4">★</button>
-          <button class="star-btn" data-rating="5">★</button>
+        <div class="star-row" id="edit-stars">
+          <button class="star" data-v="1">★</button>
+          <button class="star" data-v="2">★</button>
+          <button class="star" data-v="3">★</button>
+          <button class="star" data-v="4">★</button>
+          <button class="star" data-v="5">★</button>
         </div>
       </div>
-      <div class="form-group">
-        <label>Finished?</label>
-        <div class="finish-row">
-          <button class="btn-finish" id="edit-finished-yes" data-value="true">✅ Yes</button>
-          <button class="btn-finish" id="edit-finished-no" data-value="false">📖 Not yet</button>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Jean's Review</label>
-        <textarea id="edit-review" rows="4"></textarea>
-      </div>
-      <div class="form-group">
-        <label>Notes</label>
-        <textarea id="edit-notes" rows="3"></textarea>
-      </div>
-
-      <div class="modal-actions">
-        <button class="btn btn-primary" id="edit-save-btn">💾 Save Changes</button>
-        <button class="btn btn-secondary" id="edit-cancel-btn">Cancel</button>
+      <div class="field"><label>Review</label><textarea id="edit-review" rows="4"></textarea></div>
+      <div style="display:flex;gap:12px;margin-top:20px;">
+        <button id="edit-save" class="btn-primary">💾 Save</button>
+        <button id="edit-cancel" class="btn-secondary">Cancel</button>
       </div>
     </div>
   </div>
 
-</div><!-- /page-wrap -->
+</div><!-- /page -->
 
 <script>
-// ── State ────────────────────────────────────────────────────────
-let enrichedData = null;
-let selectedRating = 0;
-let finishedValue = null;
+// ── State ──────────────────────────────────────────────────────
+let enriched = null;   // result from /api/lookup
+let addRating = 0;
 let editRating = 0;
-let editFinished = null;
 
-// ── Auth ─────────────────────────────────────────────────────────
-fetch('/auth/status').then(r => r.json()).then(d => {
-  if (!d.loggedIn) window.location.href = '/';
-});
+// ── Init ───────────────────────────────────────────────────────
+fetch('/auth/status').then(r=>r.json()).then(d=>{ if(!d.loggedIn) location.href='/'; });
+document.getElementById('logout-btn').onclick = () =>
+  fetch('/auth/logout',{method:'POST'}).then(()=>location.href='/');
 
-document.getElementById('logout-btn').addEventListener('click', async () => {
-  await fetch('/auth/logout', { method: 'POST' });
-  window.location.href = '/';
-});
+loadBooks();
 
-// ── Views ────────────────────────────────────────────────────────
+// ── View helpers ───────────────────────────────────────────────
 function showLibrary() {
-  document.getElementById('view-library').style.display = '';
-  document.getElementById('view-wizard').style.display = 'none';
+  document.getElementById('view-library').style.display='';
+  document.getElementById('view-wizard').style.display='none';
   loadBooks();
 }
-
 function showWizard() {
-  document.getElementById('view-library').style.display = 'none';
-  document.getElementById('view-wizard').style.display = '';
+  document.getElementById('view-library').style.display='none';
+  document.getElementById('view-wizard').style.display='';
   resetWizard();
-  gotoStep(1);
 }
+document.getElementById('add-btn').onclick = showWizard;
+document.getElementById('back-btn').onclick = showLibrary;
 
-document.getElementById('add-book-btn').addEventListener('click', showWizard);
-document.getElementById('wizard-back').addEventListener('click', showLibrary);
-
-// ── Wizard steps ─────────────────────────────────────────────────
-function gotoStep(n) {
-  [1,2,3].forEach(i => {
-    document.getElementById('step-' + i).classList.toggle('active', i === n);
-    const dot = document.getElementById('dot-' + i);
-    dot.className = 'step-dot' + (i < n ? ' done' : i === n ? ' active' : '');
-  });
-}
-
-function resetWizard() {
-  document.getElementById('book-title').value = '';
-  document.getElementById('book-author').value = '';
-  document.getElementById('review-text').value = '';
-  document.getElementById('genre-input').value = '';
-  document.getElementById('notes-input').value = '';
-  selectedRating = 0; enrichedData = null;
-  updateStars('stars-row', 0);
-  clearErr('step1-error'); clearErr('step3-error');
-}
-
-document.getElementById('back-to-step1').addEventListener('click', () => gotoStep(1));
-document.getElementById('to-step3-btn').addEventListener('click', () => gotoStep(3));
-
-// ── Errors ───────────────────────────────────────────────────────
-function showErr(id, msg) {
-  const el = document.getElementById(id);
-  el.textContent = msg; el.style.display = 'block';
-}
-function clearErr(id) {
-  const el = document.getElementById(id);
-  el.textContent = ''; el.style.display = 'none';
-}
-
-// ── Stars ────────────────────────────────────────────────────────
-function updateStars(rowId, val) {
-  document.querySelectorAll('#' + rowId + ' .star-btn').forEach(b => {
-    b.classList.toggle('active', parseInt(b.dataset.rating) <= val);
-  });
-}
-
-document.querySelectorAll('#stars-row .star-btn').forEach(b => {
-  b.addEventListener('click', () => {
-    selectedRating = parseInt(b.dataset.rating);
-    updateStars('stars-row', selectedRating);
-  });
-});
-
-document.querySelectorAll('#edit-stars-row .star-btn').forEach(b => {
-  b.addEventListener('click', () => {
-    editRating = parseInt(b.dataset.rating);
-    updateStars('edit-stars-row', editRating);
-  });
-});
-
-// ── Finish buttons ───────────────────────────────────────────────
-function clearFinish(yesId, noId) {
-  document.getElementById(yesId).classList.remove('sel');
-  document.getElementById(noId).classList.remove('sel');
-}
-
-['finished-yes','finished-no'].forEach(id => {
-  document.getElementById(id).addEventListener('click', function() {
-    finishedValue = this.dataset.value === 'true';
-    document.getElementById('finished-yes').classList.toggle('sel', finishedValue);
-    document.getElementById('finished-no').classList.toggle('sel', !finishedValue);
-  });
-});
-
-['edit-finished-yes','edit-finished-no'].forEach(id => {
-  document.getElementById(id).addEventListener('click', function() {
-    editFinished = this.dataset.value === 'true';
-    document.getElementById('edit-finished-yes').classList.toggle('sel', editFinished);
-    document.getElementById('edit-finished-no').classList.toggle('sel', !editFinished);
-  });
-});
-
-// ── Step 1 lookup ────────────────────────────────────────────────
-// ── Suggestion helpers ───────────────────────────────────────
-function showSuggestPanel(label, results, onPick) {
-  document.getElementById('lookup-btn').style.display = 'none';
-  const panel = document.getElementById('suggest-panel');
-  document.getElementById('suggest-label').textContent = label;
-  const list = document.getElementById('suggest-list');
-  list.innerHTML = '';
-  results.forEach(r => {
-    const btn = document.createElement('button');
-    btn.className = 'suggest-item';
-    btn.innerHTML = `<span class="sug-title">${esc(r.title)}</span><span class="sug-author">by ${esc(r.author)}${r.year ? ' (' + r.year + ')' : ''}</span>`;
-    btn.addEventListener('click', () => {
-      hideSuggestPanel();
-      onPick(r);
-    });
-    list.appendChild(btn);
-  });
-  panel.style.display = 'block';
-}
-
-function hideSuggestPanel() {
-  document.getElementById('suggest-panel').style.display = 'none';
-  document.getElementById('lookup-btn').style.display = '';
-}
-
-document.getElementById('suggest-cancel').addEventListener('click', hideSuggestPanel);
-
-// ── Main lookup handler ───────────────────────────────────────
-document.getElementById('lookup-btn').addEventListener('click', async () => {
-  clearErr('step1-error');
-  const title = document.getElementById('book-title').value.trim();
-  const author = document.getElementById('book-author').value.trim();
-
-  if (!title && !author) {
-    showErr('step1-error', 'Please enter the book title, the author name, or both.');
-    return;
-  }
-
-  document.getElementById('lookup-btn').disabled = true;
-  const loadingEl = document.getElementById('lookup-loading');
-  const loadingText = document.getElementById('lookup-loading-text');
-
-  // ── Title only: fetch author suggestions ──────────────────
-  if (title && !author) {
-    loadingText.textContent = 'Searching for that title…';
-    loadingEl.style.display = 'block';
-    try {
-      const res = await fetch(`/api/suggest?title=${encodeURIComponent(title)}`);
-      const results = await res.json();
-      if (results.length === 0) {
-        showErr('step1-error', "I couldn't find that title. Please check the spelling or add the author's name.");
-      } else {
-        showSuggestPanel(
-          `I found ${results.length} book${results.length > 1 ? 's' : ''} matching that title — tap the one Jean read:`,
-          results,
-          (pick) => {
-            document.getElementById('book-title').value = pick.title;
-            document.getElementById('book-author').value = pick.author;
-            document.getElementById('lookup-btn').click();
-          }
-        );
-      }
-    } catch { showErr('step1-error', 'Could not search. Please try again.'); }
-    finally { document.getElementById('lookup-btn').disabled = false; loadingEl.style.display = 'none'; }
-    return;
-  }
-
-  // ── Author only: fetch their books ───────────────────────
-  if (author && !title) {
-    loadingText.textContent = `Looking up books by ${author}…`;
-    loadingEl.style.display = 'block';
-    try {
-      const res = await fetch(`/api/suggest?author=${encodeURIComponent(author)}`);
-      const results = await res.json();
-      if (results.length === 0) {
-        showErr('step1-error', `I couldn't find books by "${author}". Please check the spelling.`);
-      } else {
-        showSuggestPanel(
-          `Here are books by ${author} — tap the one Jean read:`,
-          results,
-          (pick) => {
-            document.getElementById('book-title').value = pick.title;
-            document.getElementById('book-author').value = pick.author;
-            document.getElementById('lookup-btn').click();
-          }
-        );
-      }
-    } catch { showErr('step1-error', 'Could not search. Please try again.'); }
-    finally { document.getElementById('lookup-btn').disabled = false; loadingEl.style.display = 'none'; }
-    return;
-  }
-
-  // ── Both provided: full enrichment ───────────────────────
-  loadingText.textContent = 'Looking up your book…';
-  loadingEl.style.display = 'block';
-  try {
-    const res = await fetch('/api/books/lookup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, author }),
-    });
-    const data = await res.json();
-    if (!res.ok) { showErr('step1-error', data.error || 'Something went wrong.'); return; }
-    enrichedData = data;
-    // Pre-fill genre from AI
-    if (data.genre) document.getElementById('genre-input').value = data.genre;
-    renderPreview(data);
-    gotoStep(2);
-  } catch { showErr('step1-error', 'Could not connect. Please try again.'); }
-  finally {
-    document.getElementById('lookup-btn').disabled = false;
-    loadingEl.style.display = 'none';
-  }
-});
-
-function renderPreview(d) {
-  const cover = d.coverUrl
-    ? `<img src="${esc(d.coverUrl)}" class="preview-img" alt="">`
-    : `<div class="preview-img-placeholder">📖</div>`;
-  const genrePill = d.genre ? `<span class="preview-genre-pill">${esc(d.genre)}</span>` : '';
-  let html = `<div class="preview-top">${cover}<div><div class="preview-title">${esc(d.title)}</div><div class="preview-author">by ${esc(d.author)}</div>${genrePill}</div></div>`;
-  if (d.description) html += `<div class="preview-section"><strong>About This Book</strong><p>${esc(d.description)}</p></div>`;
-  if (d.authorBio) html += `<div class="preview-section"><strong>About the Author</strong><p>${esc(d.authorBio)}</p></div>`;
-  const facts = [d.funFact1, d.funFact2].filter(Boolean);
-  if (facts.length) html += `<div class="preview-section"><strong>Fun Facts</strong><ul>${facts.map(f=>`<li>${esc(f)}</li>`).join('')}</ul></div>`;
-  document.getElementById('preview-card').innerHTML = html;
-}
-
-// ── Step 3 save ──────────────────────────────────────────────────
-document.getElementById('save-btn').addEventListener('click', async () => {
-  clearErr('step3-error');
-  if (!selectedRating) { showErr('step3-error', 'Please choose a star rating.'); return; }
-  document.getElementById('save-btn').disabled = true;
-  document.getElementById('save-loading').style.display = 'block';
-
-  try {
-    const res = await fetch('/api/books/save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: enrichedData.title,
-        author: enrichedData.author,
-        coverUrl: enrichedData.coverUrl || null,
-        bookDescription: enrichedData.description || null,
-        authorBio: enrichedData.authorBio || null,
-        funFact1: enrichedData.funFact1 || null,
-        funFact2: enrichedData.funFact2 || null,
-        rating: selectedRating,
-        review: document.getElementById('review-text').value.trim() || null,
-        genre: document.getElementById('genre-input').value.trim() || null,
-        notes: document.getElementById('notes-input').value.trim() || null,
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok || !data.success) { showErr('step3-error', data.error || 'Could not save.'); return; }
-    showLibrary();
-  } catch { showErr('step3-error', 'Could not save. Please try again.'); }
-  finally {
-    document.getElementById('save-btn').disabled = false;
-    document.getElementById('save-loading').style.display = 'none';
-  }
-});
-
-// ── Load + render grid ───────────────────────────────────────────
+// ── Load books ─────────────────────────────────────────────────
 async function loadBooks() {
-  const err = document.getElementById('library-error');
-  err.style.display = 'none';
+  const errEl = document.getElementById('lib-error');
+  errEl.style.display='none';
   try {
-    const books = await fetch('/api/books').then(r => r.json());
+    const r = await fetch('/api/books');
+    if (!r.ok) throw new Error('Server returned '+r.status);
+    const books = await r.json();
+    if (!Array.isArray(books)) throw new Error('Unexpected response');
     renderGrid(books);
-  } catch {
-    err.textContent = 'Could not load books. Please refresh.';
-    err.style.display = 'block';
+  } catch(e) {
+    errEl.textContent = 'Could not load books: '+e.message;
+    errEl.style.display='block';
   }
 }
 
+// ── Render grid ────────────────────────────────────────────────
 function renderGrid(books) {
-  const wrap = document.getElementById('grid-wrap');
+  const wrap  = document.getElementById('grid-wrap');
   const tbody = document.getElementById('grid-body');
-  const empty = document.getElementById('empty-library');
-  const countEl = document.getElementById('book-count');
+  const empty = document.getElementById('empty-msg');
+  const count = document.getElementById('book-count');
+
   tbody.innerHTML = '';
 
-  if (!books.length) {
-    wrap.style.display = 'none';
-    empty.style.display = '';
-    countEl.textContent = '';
+  if (!books || books.length === 0) {
+    wrap.style.display='none';
+    empty.style.display='';
+    count.textContent='';
     return;
   }
-  wrap.style.display = '';
-  empty.style.display = 'none';
-  countEl.textContent = books.length === 1 ? '1 book' : `${books.length} books`;
 
-  books.forEach(book => {
+  wrap.style.display='';
+  empty.style.display='none';
+  count.textContent = books.length + (books.length===1?' book':' books');
+
+  books.forEach(b => {
     const tr = document.createElement('tr');
-
-    const cover = book.cover_url
-      ? `<img src="${esc(book.cover_url)}" class="grid-cover" loading="lazy" alt="">`
-      : `<div class="grid-cover-ph">📖</div>`;
-
-    const stars = [1,2,3,4,5].map(i =>
-      `<span class="${i <= (book.rating||0) ? 'star-on' : 'star-off'}">★</span>`
-    ).join('');
-
-    const finBadge = book.finished
-      ? `<span class="badge-yes">✓ Yes</span>`
-      : `<span class="badge-no">Reading</span>`;
-
+    const cover = b.cover_url
+      ? `<img src="${x(b.cover_url)}" class="cover-img" alt="">`
+      : `<span class="cover-ph">📖</span>`;
+    const stars = [1,2,3,4,5].map(i=>`<span class="${i<=(b.rating||0)?'son':'soff'}">★</span>`).join('');
     tr.innerHTML = `
+      <td class="td-act">
+        <button class="btn-edit" onclick="openEdit(${b.id})">✏️</button>
+        <button class="btn-del" onclick="delBook(${b.id},'${x(b.title)}')">🗑</button>
+      </td>
       <td class="td-cover">${cover}</td>
-      <td class="td-title">${esc(book.title)}</td>
-      <td class="td-author">${esc(book.author)}</td>
-      <td class="td-genre">${book.genre ? `<span class="genre-tag">${esc(book.genre)}</span>` : ''}</td>
+      <td class="td-text"><strong>${x(b.title)}</strong></td>
+      <td class="td-text"><em>${x(b.author)}</em></td>
+      <td class="td-text">${b.genre?`<span class="genre-tag">${x(b.genre)}</span>`:''}</td>
       <td class="td-stars">${stars}</td>
-      <td class="td-text">${esc(book.review || '')}</td>
-      <td class="td-text">${esc(book.book_description || '')}</td>
-      <td class="td-text">${esc(book.author_bio || '')}</td>
-      <td class="td-text">${esc(book.fun_fact_1 || '')}</td>
-      <td class="td-text">${esc(book.fun_fact_2 || '')}</td>
-      <td class="td-date">${fmtDate(book.added_at)}</td>
+      <td class="td-long">${x(b.review||'')}</td>
+      <td class="td-long">${x(b.book_description||'')}</td>
+      <td class="td-long">${x(b.author_bio||'')}</td>
+      <td class="td-long">${x(b.fun_fact_1||'')}</td>
+      <td class="td-long">${x(b.fun_fact_2||'')}</td>
+      <td class="td-date">${fmtDate(b.added_at)}</td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-// ── Edit modal ───────────────────────────────────────────────────
-async function openEdit(id) {
-  const book = await fetch(`/api/books/${id}`).then(r => r.json());
-  document.getElementById('edit-id').value = id;
-  document.getElementById('edit-title').value = book.title || '';
-  document.getElementById('edit-author').value = book.author || '';
-  document.getElementById('edit-genre').value = book.genre || '';
-  document.getElementById('edit-review').value = book.review || '';
-  document.getElementById('edit-notes').value = book.notes || '';
-  editRating = book.rating || 0;
-  editFinished = book.finished === 1 || book.finished === true;
-  updateStars('edit-stars-row', editRating);
-  document.getElementById('edit-finished-yes').classList.toggle('sel', editFinished);
-  document.getElementById('edit-finished-no').classList.toggle('sel', !editFinished);
-  clearErr('edit-error');
-  document.getElementById('edit-overlay').style.display = 'flex';
+// ── Wizard ─────────────────────────────────────────────────────
+function resetWizard() {
+  goStep(1);
+  document.getElementById('inp-title').value='';
+  document.getElementById('inp-author').value='';
+  document.getElementById('inp-review').value='';
+  document.getElementById('inp-genre').value='';
+  document.getElementById('s1-error').style.display='none';
+  document.getElementById('s3-error').style.display='none';
+  document.getElementById('suggest-box').style.display='none';
+  document.getElementById('lookup-btn').style.display='';
+  addRating=0; enriched=null;
+  setStars('add-stars',0);
 }
 
-document.getElementById('edit-cancel-btn').addEventListener('click', () => {
-  document.getElementById('edit-overlay').style.display = 'none';
-});
-
-document.getElementById('edit-save-btn').addEventListener('click', async () => {
-  const id = document.getElementById('edit-id').value;
-  const title = document.getElementById('edit-title').value.trim();
-  const author = document.getElementById('edit-author').value.trim();
-  if (!title || !author) { showErr('edit-error', 'Title and author are required.'); return; }
-
-  document.getElementById('edit-save-btn').disabled = true;
-  try {
-    const res = await fetch(`/api/books/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title, author,
-        genre: document.getElementById('edit-genre').value.trim() || null,
-        rating: editRating || null,
-        finished: editFinished,
-        review: document.getElementById('edit-review').value.trim() || null,
-        notes: document.getElementById('edit-notes').value.trim() || null,
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok || !data.success) { showErr('edit-error', data.error || 'Could not save.'); return; }
-    document.getElementById('edit-overlay').style.display = 'none';
-    loadBooks();
-  } catch { showErr('edit-error', 'Could not save changes.'); }
-  finally { document.getElementById('edit-save-btn').disabled = false; }
-});
-
-// ── Delete ───────────────────────────────────────────────────────
-async function deleteBook(id, title) {
-  if (!confirm(`Delete "${title}"?\n\nThis cannot be undone.`)) return;
-  try {
-    const res = await fetch(`/api/books/${id}`, { method: 'DELETE' });
-    const data = await res.json();
-    if (!res.ok || !data.success) { alert('Could not delete book.'); return; }
-    loadBooks();
-  } catch { alert('Could not delete book.'); }
+function goStep(n) {
+  [1,2,3].forEach(i=>document.getElementById('step-'+i).classList.toggle('active',i===n));
 }
 
-// ── Helpers ──────────────────────────────────────────────────────
-function esc(s) {
-  if (!s) return '';
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
+document.getElementById('back-to-s1').onclick = ()=>goStep(1);
+document.getElementById('to-review-btn').onclick = ()=>goStep(3);
 
-function fmtDate(dt) {
-  if (!dt) return '';
-  try { return new Date(dt).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }); }
-  catch { return dt; }
-}
+// Step 1: lookup
+document.getElementById('lookup-btn').onclick = async () => {
+  const title  = document.getElementById('inp-title').value.trim();
+  const author = document.getElementById('inp-author').value.trim();
+  const errEl  = document.getElementById('s1-error');
+  errEl.style.display='none';
 
-// ── Fetch cover on demand ────────────────────────────────────────
-async function fetchCover(id, el) {
-  el.textContent = '⏳';
-  el.style.cursor = 'default';
-  try {
-    const res = await fetch(`/api/books/${id}/cover`, { method: 'POST' });
-    const data = await res.json();
-    if (data.success && data.coverUrl) {
-      const img = document.createElement('img');
-      img.src = data.coverUrl;
-      img.className = 'grid-cover';
-      img.loading = 'lazy';
-      el.replaceWith(img);
-    } else {
-      el.textContent = '📖';
-      el.title = 'No cover available';
-      el.style.cursor = 'default';
-    }
-  } catch {
-    el.textContent = '📖';
+  if (!title && !author) {
+    errEl.textContent='Please enter a title, an author, or both.';
+    errEl.style.display='block';
+    return;
   }
+
+  const spin = document.getElementById('lookup-spinner');
+  document.getElementById('lookup-btn').disabled=true;
+  spin.style.display='flex';
+
+  try {
+    // Title-only or author-only → show suggestions
+    if (!title || !author) {
+      const param = title ? `title=${encodeURIComponent(title)}` : `author=${encodeURIComponent(author)}`;
+      const r = await fetch('/api/suggest?'+param);
+      const results = await r.json();
+      if (!results.length) {
+        errEl.textContent = title
+          ? "I couldn't find that title. Try adding the author's name."
+          : "I couldn't find books by that author. Check the spelling.";
+        errEl.style.display='block';
+      } else {
+        showSuggestions(results, title
+          ? `Found ${results.length} book(s) — tap the one Jean read:`
+          : `Books by ${author} — tap the one Jean read:`);
+      }
+      return;
+    }
+
+    // Both provided → enrich
+    const r = await fetch('/api/lookup', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({title, author}),
+    });
+    const data = await r.json();
+    if (!r.ok) { errEl.textContent=data.error||'Lookup failed.'; errEl.style.display='block'; return; }
+    enriched = data;
+    if (data.genre) document.getElementById('inp-genre').value = data.genre;
+    renderPreview(data);
+    goStep(2);
+
+  } catch(e) {
+    errEl.textContent = 'Connection error: '+e.message;
+    errEl.style.display='block';
+  } finally {
+    document.getElementById('lookup-btn').disabled=false;
+    spin.style.display='none';
+  }
+};
+
+function showSuggestions(results, label) {
+  document.getElementById('lookup-btn').style.display='none';
+  document.getElementById('suggest-label').textContent = label;
+  const list = document.getElementById('suggest-list');
+  list.innerHTML='';
+  results.forEach(r=>{
+    const btn=document.createElement('button');
+    btn.className='suggest-item';
+    btn.innerHTML=`<span class="si-title">${x(r.title)}</span><span class="si-by">by ${x(r.author)}${r.year?' ('+r.year+')':''}</span>`;
+    btn.onclick=()=>{
+      document.getElementById('suggest-box').style.display='none';
+      document.getElementById('lookup-btn').style.display='';
+      document.getElementById('inp-title').value=r.title;
+      document.getElementById('inp-author').value=r.author;
+      document.getElementById('lookup-btn').click();
+    };
+    list.appendChild(btn);
+  });
+  document.getElementById('suggest-box').style.display='block';
+}
+document.getElementById('suggest-cancel').onclick=()=>{
+  document.getElementById('suggest-box').style.display='none';
+  document.getElementById('lookup-btn').style.display='';
+};
+
+function renderPreview(d) {
+  const cover = d.coverUrl
+    ? `<img src="${x(d.coverUrl)}" class="preview-cover" alt="">`
+    : `<span class="preview-cover-ph">📖</span>`;
+  let html = `<div class="preview-top">${cover}<div><div class="preview-title">${x(d.title)}</div><div class="preview-author">by ${x(d.author)}</div>${d.genre?`<span class="genre-tag" style="margin-top:6px;display:inline-block">${x(d.genre)}</span>`:''}</div></div>`;
+  if(d.description) html+=`<div class="preview-sect"><strong>About This Book</strong><p>${x(d.description)}</p></div>`;
+  if(d.authorBio) html+=`<div class="preview-sect"><strong>About the Author</strong><p>${x(d.authorBio)}</p></div>`;
+  const facts=[d.funFact1,d.funFact2].filter(Boolean);
+  if(facts.length) html+=`<div class="preview-sect"><strong>Fun Facts</strong><ul>${facts.map(f=>`<li>${x(f)}</li>`).join('')}</ul></div>`;
+  document.getElementById('preview-area').innerHTML=html;
 }
 
-// ── Init ─────────────────────────────────────────────────────────
-loadBooks();
+// Star rating
+function setStars(rowId, val) {
+  document.querySelectorAll('#'+rowId+' .star').forEach(b=>{
+    b.classList.toggle('on', parseInt(b.dataset.v)<=val);
+  });
+}
+document.querySelectorAll('#add-stars .star').forEach(b=>b.onclick=()=>{addRating=+b.dataset.v;setStars('add-stars',addRating);});
+document.querySelectorAll('#edit-stars .star').forEach(b=>b.onclick=()=>{editRating=+b.dataset.v;setStars('edit-stars',editRating);});
+
+// Step 3: save
+document.getElementById('save-btn').onclick = async () => {
+  const errEl=document.getElementById('s3-error');
+  errEl.style.display='none';
+  if (!addRating) { errEl.textContent='Please choose a star rating.'; errEl.style.display='block'; return; }
+  const spin=document.getElementById('save-spinner');
+  document.getElementById('save-btn').disabled=true;
+  spin.style.display='flex';
+  try {
+    const r = await fetch('/api/books',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      title:enriched.title, author:enriched.author,
+      coverUrl:enriched.coverUrl||null, bookDescription:enriched.description||null,
+      authorBio:enriched.authorBio||null, funFact1:enriched.funFact1||null, funFact2:enriched.funFact2||null,
+      rating:addRating, review:document.getElementById('inp-review').value.trim()||null,
+      genre:document.getElementById('inp-genre').value.trim()||null,
+    })});
+    const d=await r.json();
+    if(!r.ok||!d.success){errEl.textContent=d.error||'Save failed.';errEl.style.display='block';return;}
+    showLibrary();
+  } catch(e){errEl.textContent='Error: '+e.message;errEl.style.display='block';}
+  finally{document.getElementById('save-btn').disabled=false;spin.style.display='none';}
+};
+
+// ── Edit ───────────────────────────────────────────────────────
+async function openEdit(id) {
+  const b = await fetch('/api/books/'+id).then(r=>r.json());
+  document.getElementById('edit-id').value=id;
+  document.getElementById('edit-title').value=b.title||'';
+  document.getElementById('edit-author').value=b.author||'';
+  document.getElementById('edit-genre').value=b.genre||'';
+  document.getElementById('edit-review').value=b.review||'';
+  editRating=b.rating||0;
+  setStars('edit-stars',editRating);
+  document.getElementById('edit-error').style.display='none';
+  document.getElementById('edit-overlay').style.display='flex';
+}
+document.getElementById('edit-cancel').onclick=()=>document.getElementById('edit-overlay').style.display='none';
+document.getElementById('edit-save').onclick=async()=>{
+  const id=document.getElementById('edit-id').value;
+  const title=document.getElementById('edit-title').value.trim();
+  const author=document.getElementById('edit-author').value.trim();
+  const errEl=document.getElementById('edit-error');
+  errEl.style.display='none';
+  if(!title||!author){errEl.textContent='Title and author required.';errEl.style.display='block';return;}
+  const r=await fetch('/api/books/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    title,author,genre:document.getElementById('edit-genre').value.trim()||null,
+    rating:editRating||null,review:document.getElementById('edit-review').value.trim()||null,
+  })});
+  const d=await r.json();
+  if(!r.ok||!d.success){errEl.textContent=d.error||'Save failed.';errEl.style.display='block';return;}
+  document.getElementById('edit-overlay').style.display='none';
+  loadBooks();
+};
+
+// ── Delete ─────────────────────────────────────────────────────
+async function delBook(id,title) {
+  if(!confirm('Delete "'+title+'"? This cannot be undone.'))return;
+  const r=await fetch('/api/books/'+id,{method:'DELETE'});
+  const d=await r.json();
+  if(!r.ok||!d.success){alert('Delete failed.');return;}
+  loadBooks();
+}
+
+// ── Helpers ────────────────────────────────────────────────────
+function x(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtDate(dt){if(!dt)return'';try{return new Date(dt.replace(' ','T')).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}catch{return dt;}}
 </script>
 </body>
 </html>
