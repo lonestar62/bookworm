@@ -1037,135 +1037,204 @@ textarea {
   margin-bottom: 8px;
 }
 
+
 /* ═══════════════════════════════════════════
-   SPREADSHEET / TABLE VIEW
+   BOOK JOURNAL LIST VIEW
    ═══════════════════════════════════════════ */
 
+.book-list-header {
+  padding: 28px 0 12px;
+}
+
+.book-list-heading {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.8rem;
+  color: var(--text);
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
 .book-count {
-  font-size: 1.1rem;
-  color: #5a7a65;
-  margin: 0 0 12px 0;
+  font-size: 1rem;
+  color: var(--text-light);
   font-style: italic;
+  margin: 0;
 }
 
-.table-scroll {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
-  border: 1px solid #d4c9b5;
+#book-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-bottom: 16px;
 }
 
-.book-table {
-  border-collapse: collapse;
-  width: 100%;
-  min-width: 1200px;
-  background: #fff;
-  font-size: 1rem;
+.book-entry {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(44, 24, 16, 0.10);
+  padding: 24px;
+  border: 1px solid var(--border-light);
 }
 
-.book-table thead th {
-  background: #2a6041;
-  color: #fff;
-  font-family: Georgia, serif;
-  font-size: 1rem;
-  font-weight: 700;
-  padding: 14px 12px;
-  text-align: left;
-  white-space: nowrap;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  border-right: 1px solid #3d8057;
+.entry-top {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
 }
 
-.book-table thead th:last-child { border-right: none; }
-
-.book-table tbody tr {
-  border-bottom: 1px solid #e8e0d0;
-  transition: background 0.15s;
+.entry-cover-wrap {
+  flex-shrink: 0;
 }
 
-.book-table tbody tr:hover { background: #f5f0e8 !important; }
-
-.row-even { background: #fff; }
-.row-odd  { background: #fdf8f0; }
-
-.book-table td {
-  padding: 12px 12px;
-  vertical-align: top;
-  border-right: 1px solid #ece7db;
-  font-size: 1rem;
-  line-height: 1.5;
-  color: #2c1810;
-}
-
-.book-table td:last-child { border-right: none; }
-
-/* Column widths */
-.td-cover    { width: 70px;  min-width: 70px;  }
-.td-title    { width: 180px; min-width: 150px; font-size: 1.05rem; }
-.td-author   { width: 140px; min-width: 120px; }
-.td-genre    { width: 110px; min-width: 90px;  }
-.td-rating   { width: 100px; min-width: 90px;  white-space: nowrap; }
-.td-finished { width: 80px;  min-width: 70px;  text-align: center; }
-.td-text     { width: 200px; min-width: 160px; max-width: 240px; }
-.td-date     { width: 120px; min-width: 100px; white-space: nowrap; color: #7a6a55; font-size: 0.9rem; }
-
-/* Long text cells scroll internally */
-.td-text {
-  max-height: 140px;
-  overflow-y: auto;
-  font-size: 0.97rem;
-  color: #3a2c1e;
-}
-
-/* Cover thumbnail */
-.tbl-cover {
-  width: 55px;
-  height: 75px;
+.entry-cover {
+  width: 80px;
+  height: 116px;
   object-fit: cover;
-  border-radius: 4px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(44,24,16,0.2);
   display: block;
 }
 
-.tbl-cover-placeholder {
-  width: 55px;
-  height: 75px;
-  background: #f0ebe0;
-  border-radius: 4px;
+.entry-cover-placeholder {
+  width: 80px;
+  height: 116px;
+  background: var(--cream-mid);
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8rem;
-  color: #b5a898;
+  font-size: 2.5rem;
+  color: var(--text-light);
 }
 
-/* Badges */
-.tbl-badge {
+.entry-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.entry-title {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.35rem;
+  font-weight: bold;
+  color: #2c1810;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+
+.entry-author {
+  font-size: 1rem;
+  font-style: italic;
+  color: #5a4a3a;
+  margin-bottom: 10px;
+}
+
+.entry-stars {
+  font-size: 1.35rem;
+  color: var(--gold);
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+  line-height: 1;
+}
+.entry-stars .star-empty { color: var(--gold-empty); }
+
+.entry-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.entry-badge {
   display: inline-block;
-  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 4px 14px;
   border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  letter-spacing: 0.03em;
 }
-.tbl-badge.finished { background: #e8f4ec; color: #2a6041; border: 1px solid #b5d9c3; }
-.tbl-badge.reading  { background: #fff3e0; color: #b36000; border: 1px solid #ffd699; }
 
-/* Genre pill */
-.genre-pill {
+.badge-finished {
+  background: var(--green-light);
+  color: var(--green-dark);
+  border: 1.5px solid var(--green);
+}
+
+.badge-reading {
+  background: var(--gold-bg);
+  color: #7a5a10;
+  border: 1.5px solid var(--gold);
+}
+
+.entry-genre-pill {
+  display: inline-block;
   background: #e8f4ec;
   color: #2a6041;
   border: 1px solid #b5d9c3;
   border-radius: 20px;
-  padding: 3px 10px;
-  font-size: 0.88rem;
+  padding: 4px 12px;
+  font-size: 0.8rem;
   font-weight: 600;
-  white-space: nowrap;
 }
 
-/* Stars in table */
-.book-table .star-empty { color: #d4c9b5; }
-.book-table span { color: #c9973a; font-size: 1.1rem; }
+.entry-date {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
+.entry-divider {
+  border: none;
+  border-top: 1px solid #ece7db;
+  margin: 18px 0;
+}
+
+.entry-section-heading {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #2a6041;
+  letter-spacing: 0.08em;
+  border-left: 3px solid #2a6041;
+  padding-left: 10px;
+  margin-bottom: 10px;
+}
+
+.entry-section-body {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #2c1810;
+}
+
+.entry-review-text {
+  font-style: italic;
+}
+
+.entry-fun-facts {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.entry-fun-facts li {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #2c1810;
+  padding: 4px 0 4px 22px;
+  position: relative;
+}
+
+.entry-fun-facts li::before {
+  content: '\2022';
+  position: absolute;
+  left: 6px;
+  color: #2a6041;
+  font-weight: bold;
+}
+
+@media (max-width: 440px) {
+  .entry-cover { width: 60px; height: 88px; }
+  .entry-cover-placeholder { width: 60px; height: 88px; font-size: 1.8rem; }
+  .entry-title { font-size: 1.15rem; }
+  .book-list-heading { font-size: 1.5rem; }
+}

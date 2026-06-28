@@ -30,31 +30,13 @@
 
     <div id="library-error" class="error-msg"></div>
 
-    <!-- Spreadsheet view — one row per book, all fields -->
-    <div id="spreadsheet-wrap" style="display:none;">
-      <p class="book-count" id="book-count"></p>
-      <div class="table-scroll">
-        <table class="book-table">
-          <thead>
-            <tr>
-              <th>Cover</th>
-              <th>Title</th>
-              <th>Author</th>
-              <th>Genre</th>
-              <th>Rating</th>
-              <th>Finished?</th>
-              <th>Jean's Review</th>
-              <th>About the Book</th>
-              <th>About the Author</th>
-              <th>Fun Fact 1</th>
-              <th>Fun Fact 2</th>
-              <th>Notes</th>
-              <th>Date Added</th>
-            </tr>
-          </thead>
-          <tbody id="book-tbody"></tbody>
-        </table>
+    <!-- Book journal list view -->
+    <div id="book-list-wrap" style="display:none;">
+      <div class="book-list-header">
+        <h2 class="book-list-heading">📚 All Your Books</h2>
+        <p class="book-count" id="book-count"></p>
       </div>
+      <div id="book-list"></div>
     </div>
 
     <div id="empty-library" class="empty-library" style="display:none;">
@@ -525,11 +507,11 @@ async function loadBooks() {
 }
 
 function renderBooks(books) {
-  const wrap = document.getElementById('spreadsheet-wrap');
-  const tbody = document.getElementById('book-tbody');
+  const wrap = document.getElementById('book-list-wrap');
+  const listEl = document.getElementById('book-list');
   const empty = document.getElementById('empty-library');
   const countEl = document.getElementById('book-count');
-  tbody.innerHTML = '';
+  listEl.innerHTML = '';
 
   if (!books.length) {
     wrap.style.display = 'none';
@@ -540,36 +522,91 @@ function renderBooks(books) {
   wrap.style.display = '';
   countEl.textContent = books.length === 1 ? '1 book in your collection' : `${books.length} books in your collection`;
 
-  books.forEach((book, idx) => {
-    const tr = document.createElement('tr');
-    tr.className = idx % 2 === 0 ? 'row-even' : 'row-odd';
+  books.forEach(book => {
+    const entry = document.createElement('div');
+    entry.className = 'book-entry';
 
+    // Cover
     const coverHtml = book.cover_url
-      ? `<img src="${esc(book.cover_url)}" alt="" class="tbl-cover" loading="lazy">`
-      : `<div class="tbl-cover-placeholder">📖</div>`;
+      ? `<img src="${esc(book.cover_url)}" alt="Cover of ${esc(book.title)}" class="entry-cover" loading="lazy">`
+      : `<div class="entry-cover-placeholder">📖</div>`;
 
+    // Stars
     const starsHtml = renderStarsHtml(book.rating || 0);
-    const finishedHtml = book.finished
-      ? `<span class="tbl-badge finished">✓ Yes</span>`
-      : `<span class="tbl-badge reading">📖 No</span>`;
 
-    tr.innerHTML = `
-      <td class="td-cover">${coverHtml}</td>
-      <td class="td-title"><strong>${esc(book.title)}</strong></td>
-      <td class="td-author">${esc(book.author)}</td>
-      <td class="td-genre">${book.genre ? `<span class="genre-pill">${esc(book.genre)}</span>` : ''}</td>
-      <td class="td-rating">${starsHtml}</td>
-      <td class="td-finished">${finishedHtml}</td>
-      <td class="td-text">${esc(book.review || '')}</td>
-      <td class="td-text">${esc(book.book_description || '')}</td>
-      <td class="td-text">${esc(book.author_bio || '')}</td>
-      <td class="td-text">${esc(book.fun_fact_1 || '')}</td>
-      <td class="td-text">${esc(book.fun_fact_2 || '')}</td>
-      <td class="td-text">${esc(book.notes || '')}</td>
-      <td class="td-date">${formatDate(book.added_at)}</td>
+    // Finished badge
+    const finishedHtml = book.finished
+      ? `<span class="entry-badge badge-finished">✓ Finished</span>`
+      : `<span class="entry-badge badge-reading">📖 Still Reading</span>`;
+
+    // Genre pill (only if set)
+    const genreHtml = book.genre
+      ? `<span class="entry-genre-pill">${esc(book.genre)}</span>`
+      : '';
+
+    // Date
+    const dateHtml = book.added_at
+      ? `<span class="entry-date">${formatDate(book.added_at)}</span>`
+      : '';
+
+    // Conditional sections — only render if content exists
+    const reviewHtml = book.review ? `
+      <hr class="entry-divider">
+      <div class="entry-section">
+        <div class="entry-section-heading">Jean's Review</div>
+        <div class="entry-section-body entry-review-text">${esc(book.review)}</div>
+      </div>` : '';
+
+    const descHtml = book.book_description ? `
+      <hr class="entry-divider">
+      <div class="entry-section">
+        <div class="entry-section-heading">About This Book</div>
+        <div class="entry-section-body">${esc(book.book_description)}</div>
+      </div>` : '';
+
+    const bioHtml = book.author_bio ? `
+      <hr class="entry-divider">
+      <div class="entry-section">
+        <div class="entry-section-heading">About the Author</div>
+        <div class="entry-section-body">${esc(book.author_bio)}</div>
+      </div>` : '';
+
+    const facts = [book.fun_fact_1, book.fun_fact_2].filter(Boolean);
+    const funFactsHtml = facts.length ? `
+      <hr class="entry-divider">
+      <div class="entry-section">
+        <div class="entry-section-heading">💡 Fun Facts</div>
+        <ul class="entry-fun-facts">
+          ${facts.map(f => `<li>${esc(f)}</li>`).join('')}
+        </ul>
+      </div>` : '';
+
+    const notesHtml = book.notes ? `
+      <hr class="entry-divider">
+      <div class="entry-section">
+        <div class="entry-section-heading">📝 My Notes</div>
+        <div class="entry-section-body">${esc(book.notes)}</div>
+      </div>` : '';
+
+    entry.innerHTML = `
+      <div class="entry-top">
+        <div class="entry-cover-wrap">${coverHtml}</div>
+        <div class="entry-meta">
+          <div class="entry-title">${esc(book.title)}</div>
+          <div class="entry-author">by ${esc(book.author)}</div>
+          <div class="entry-stars">${starsHtml}</div>
+          <div class="entry-badges">${finishedHtml}${genreHtml}</div>
+          ${dateHtml}
+        </div>
+      </div>
+      ${reviewHtml}
+      ${descHtml}
+      ${bioHtml}
+      ${funFactsHtml}
+      ${notesHtml}
     `;
 
-    tbody.appendChild(tr);
+    listEl.appendChild(entry);
   });
 }
 
