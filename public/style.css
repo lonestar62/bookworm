@@ -1036,3 +1036,136 @@ textarea {
   font-weight: 600;
   margin-bottom: 8px;
 }
+
+/* ═══════════════════════════════════════════
+   SPREADSHEET / TABLE VIEW
+   ═══════════════════════════════════════════ */
+
+.book-count {
+  font-size: 1.1rem;
+  color: #5a7a65;
+  margin: 0 0 12px 0;
+  font-style: italic;
+}
+
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  border: 1px solid #d4c9b5;
+}
+
+.book-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 1200px;
+  background: #fff;
+  font-size: 1rem;
+}
+
+.book-table thead th {
+  background: #2a6041;
+  color: #fff;
+  font-family: Georgia, serif;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 14px 12px;
+  text-align: left;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-right: 1px solid #3d8057;
+}
+
+.book-table thead th:last-child { border-right: none; }
+
+.book-table tbody tr {
+  border-bottom: 1px solid #e8e0d0;
+  transition: background 0.15s;
+}
+
+.book-table tbody tr:hover { background: #f5f0e8 !important; }
+
+.row-even { background: #fff; }
+.row-odd  { background: #fdf8f0; }
+
+.book-table td {
+  padding: 12px 12px;
+  vertical-align: top;
+  border-right: 1px solid #ece7db;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #2c1810;
+}
+
+.book-table td:last-child { border-right: none; }
+
+/* Column widths */
+.td-cover    { width: 70px;  min-width: 70px;  }
+.td-title    { width: 180px; min-width: 150px; font-size: 1.05rem; }
+.td-author   { width: 140px; min-width: 120px; }
+.td-genre    { width: 110px; min-width: 90px;  }
+.td-rating   { width: 100px; min-width: 90px;  white-space: nowrap; }
+.td-finished { width: 80px;  min-width: 70px;  text-align: center; }
+.td-text     { width: 200px; min-width: 160px; max-width: 240px; }
+.td-date     { width: 120px; min-width: 100px; white-space: nowrap; color: #7a6a55; font-size: 0.9rem; }
+
+/* Long text cells scroll internally */
+.td-text {
+  max-height: 140px;
+  overflow-y: auto;
+  font-size: 0.97rem;
+  color: #3a2c1e;
+}
+
+/* Cover thumbnail */
+.tbl-cover {
+  width: 55px;
+  height: 75px;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  display: block;
+}
+
+.tbl-cover-placeholder {
+  width: 55px;
+  height: 75px;
+  background: #f0ebe0;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  color: #b5a898;
+}
+
+/* Badges */
+.tbl-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.tbl-badge.finished { background: #e8f4ec; color: #2a6041; border: 1px solid #b5d9c3; }
+.tbl-badge.reading  { background: #fff3e0; color: #b36000; border: 1px solid #ffd699; }
+
+/* Genre pill */
+.genre-pill {
+  background: #e8f4ec;
+  color: #2a6041;
+  border: 1px solid #b5d9c3;
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Stars in table */
+.book-table .star-empty { color: #d4c9b5; }
+.book-table span { color: #c9973a; font-size: 1.1rem; }

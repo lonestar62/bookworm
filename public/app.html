@@ -30,20 +30,31 @@
 
     <div id="library-error" class="error-msg"></div>
 
-    <!-- Quick-glance list: compact table of contents -->
-    <div id="quick-list-section" class="quick-list-section" style="display:none;">
-      <div class="quick-list-header">
-        <span class="quick-list-title">📋 &nbsp;All Your Books</span>
-        <span class="quick-list-count" id="ql-count"></span>
+    <!-- Spreadsheet view — one row per book, all fields -->
+    <div id="spreadsheet-wrap" style="display:none;">
+      <p class="book-count" id="book-count"></p>
+      <div class="table-scroll">
+        <table class="book-table">
+          <thead>
+            <tr>
+              <th>Cover</th>
+              <th>Title</th>
+              <th>Author</th>
+              <th>Genre</th>
+              <th>Rating</th>
+              <th>Finished?</th>
+              <th>Jean's Review</th>
+              <th>About the Book</th>
+              <th>About the Author</th>
+              <th>Fun Fact 1</th>
+              <th>Fun Fact 2</th>
+              <th>Notes</th>
+              <th>Date Added</th>
+            </tr>
+          </thead>
+          <tbody id="book-tbody"></tbody>
+        </table>
       </div>
-      <div id="quick-list-rows">
-        <!-- Compact rows injected here -->
-      </div>
-    </div>
-
-    <!-- Full expanded cards -->
-    <div id="book-list" class="book-list">
-      <!-- Cards injected here -->
     </div>
 
     <div id="empty-library" class="empty-library" style="display:none;">
@@ -514,157 +525,54 @@ async function loadBooks() {
 }
 
 function renderBooks(books) {
-  const list = document.getElementById('book-list');
+  const wrap = document.getElementById('spreadsheet-wrap');
+  const tbody = document.getElementById('book-tbody');
   const empty = document.getElementById('empty-library');
-  const qlSection = document.getElementById('quick-list-section');
-  const qlRows = document.getElementById('quick-list-rows');
-  const qlCount = document.getElementById('ql-count');
-  list.innerHTML = '';
-  qlRows.innerHTML = '';
+  const countEl = document.getElementById('book-count');
+  tbody.innerHTML = '';
 
   if (!books.length) {
+    wrap.style.display = 'none';
     empty.style.display = '';
-    qlSection.style.display = 'none';
     return;
   }
   empty.style.display = 'none';
-  qlSection.style.display = '';
-  qlCount.textContent = books.length === 1 ? '1 book' : `${books.length} books`;
+  wrap.style.display = '';
+  countEl.textContent = books.length === 1 ? '1 book in your collection' : `${books.length} books in your collection`;
 
-  books.forEach(book => {
-    // ── Quick-list row ────────────────────────────────────────────
-    const row = document.createElement('a');
-    row.className = 'quick-list-row';
-    row.setAttribute('href', `#book-card-${book.id}`);
-    row.setAttribute('role', 'row');
-    row.setAttribute('aria-label', `Jump to ${book.title}`);
-
-    const qlCover = book.cover_url
-      ? `<img src="${esc(book.cover_url)}" alt="" class="ql-thumb" loading="lazy">`
-      : `<div class="ql-thumb-placeholder">📖</div>`;
-
-    const qlStars = renderStarsHtml(book.rating || 0);
-    const qlBadgeClass = book.finished ? 'badge-finished' : 'badge-reading';
-    const qlBadgeText = book.finished ? '✓ Finished' : '📖 Reading';
-
-    row.innerHTML = `
-      ${qlCover}
-      <div class="ql-book-info">
-        <div class="ql-title">${esc(book.title)}</div>
-        <div class="ql-author">${esc(book.author)}</div>
-      </div>
-      <div class="ql-stars">${qlStars}</div>
-      <span class="ql-badge ${qlBadgeClass}">${qlBadgeText}</span>
-      <span class="ql-arrow">›</span>
-    `;
-
-    row.addEventListener('click', (e) => {
-      e.preventDefault();
-      const target = document.getElementById(`book-card-${book.id}`);
-      if (!target) return;
-      // Remove highlight from any previously highlighted card
-      document.querySelectorAll('.book-card.highlighted').forEach(c => {
-        c.classList.remove('highlighted');
-        void c.offsetWidth; // force reflow
-      });
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      // Small delay so scroll starts before highlight fires
-      setTimeout(() => {
-        target.classList.add('highlighted');
-        target.addEventListener('animationend', () => target.classList.remove('highlighted'), { once: true });
-      }, 250);
-    });
-
-    qlRows.appendChild(row);
-
-    // ── Full expanded card ────────────────────────────────────────
-    const card = document.createElement('div');
-    card.className = 'book-card';
-    card.id = `book-card-${book.id}`;
-    card.setAttribute('role', 'article');
-    card.setAttribute('aria-label', `${book.title} by ${book.author}`);
+  books.forEach((book, idx) => {
+    const tr = document.createElement('tr');
+    tr.className = idx % 2 === 0 ? 'row-even' : 'row-odd';
 
     const coverHtml = book.cover_url
-      ? `<img src="${esc(book.cover_url)}" alt="" class="book-cover" loading="lazy">`
-      : `<div class="book-cover-placeholder">📖</div>`;
+      ? `<img src="${esc(book.cover_url)}" alt="" class="tbl-cover" loading="lazy">`
+      : `<div class="tbl-cover-placeholder">📖</div>`;
 
     const starsHtml = renderStarsHtml(book.rating || 0);
+    const finishedHtml = book.finished
+      ? `<span class="tbl-badge finished">✓ Yes</span>`
+      : `<span class="tbl-badge reading">📖 No</span>`;
 
-    const badgeHtml = book.finished
-      ? `<span class="book-finished-badge badge-finished">✓ Finished</span>`
-      : `<span class="book-finished-badge badge-reading">📖 Still Reading</span>`;
-
-    const dateStr = formatDate(book.added_at);
-
-    // Review section
-    const reviewSection = book.review ? `
-      <div class="review-section">
-        <div class="review-label">Jean's Review</div>
-        <div class="review-text">${esc(book.review)}</div>
-      </div>
-    ` : '';
-
-    // AI sections
-    let aiSections = '';
-
-    if (book.book_description) {
-      aiSections += `
-        <div class="ai-section">
-          <div class="ai-section-label">About This Book</div>
-          <div class="ai-section-text">${esc(book.book_description)}</div>
-        </div>`;
-    }
-
-    if (book.author_bio) {
-      aiSections += `
-        <div class="ai-section">
-          <div class="ai-section-label">About the Author</div>
-          <div class="ai-section-text">${esc(book.author_bio)}</div>
-        </div>`;
-    }
-
-    const facts = [book.fun_fact_1, book.fun_fact_2].filter(Boolean);
-    if (facts.length) {
-      aiSections += `
-        <div class="ai-section">
-          <div class="ai-section-label">Fun Facts</div>
-          <ul class="fun-facts-list">
-            ${facts.map(f => `<li>${esc(f)}</li>`).join('')}
-          </ul>
-        </div>`;
-    }
-
-    const hasBody = book.review || book.book_description || book.author_bio || facts.length;
-
-    card.innerHTML = `
-      <div class="book-card-top">
-        <div class="book-cover-wrap">
-          ${coverHtml}
-        </div>
-        <div class="book-meta">
-          <div class="book-title">${esc(book.title)}</div>
-          <div class="book-author">by ${esc(book.author)}</div>
-          <div class="book-stars-display">${starsHtml}</div>
-          ${badgeHtml}
-          <div class="book-date">Added ${dateStr}</div>
-        </div>
-      </div>
-      ${hasBody ? `
-        <div class="book-card-body">
-          <hr class="book-divider">
-          ${reviewSection}
-          ${aiSections}
-        </div>
-      ` : ''}
+    tr.innerHTML = `
+      <td class="td-cover">${coverHtml}</td>
+      <td class="td-title"><strong>${esc(book.title)}</strong></td>
+      <td class="td-author">${esc(book.author)}</td>
+      <td class="td-genre">${book.genre ? `<span class="genre-pill">${esc(book.genre)}</span>` : ''}</td>
+      <td class="td-rating">${starsHtml}</td>
+      <td class="td-finished">${finishedHtml}</td>
+      <td class="td-text">${esc(book.review || '')}</td>
+      <td class="td-text">${esc(book.book_description || '')}</td>
+      <td class="td-text">${esc(book.author_bio || '')}</td>
+      <td class="td-text">${esc(book.fun_fact_1 || '')}</td>
+      <td class="td-text">${esc(book.fun_fact_2 || '')}</td>
+      <td class="td-text">${esc(book.notes || '')}</td>
+      <td class="td-date">${formatDate(book.added_at)}</td>
     `;
 
-    list.appendChild(card);
+    tbody.appendChild(tr);
   });
 }
 
-// ════════════════════════════════════════════════════════════════
-// Helpers
-// ════════════════════════════════════════════════════════════════
 function esc(s) {
   if (!s) return '';
   return String(s)
