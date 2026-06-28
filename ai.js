@@ -1,20 +1,18 @@
 /**
- * ai.js — Google Books API + OpenAI enrichment for Bookworm
+ * ai.js — Google Books API + Gemini enrichment for Bookworm
  */
 
 const fetch = require('node-fetch');
 
-const GOOGLE_BOOKS_API_KEY = process.env.GOOGLE_BOOKS_API_KEY;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 /**
- * Fetch book info from Google Books API.
- * Returns { description, coverUrl } or nulls on failure.
+ * Fetch book info from Google Books API (no key needed for basic search).
  */
 async function fetchGoogleBooks(title, author) {
   try {
     const query = `intitle:${encodeURIComponent(title)}+inauthor:${encodeURIComponent(author)}`;
-    const url = `https://www.googleapis.com/books/v1/volumes?q=${query}&key=${GOOGLE_BOOKS_API_KEY}&maxResults=1`;
+    const url = `https://www.googleapis.com/books/v1/volumes?q=${query}&maxResults=1`;
     const res = await fetch(url, { timeout: 10000 });
     if (!res.ok) {
       console.warn('[google-books] API error:', res.status);
@@ -28,8 +26,12 @@ async function fetchGoogleBooks(title, author) {
     const description = info.description || null;
     let coverUrl = null;
     if (info.imageLinks) {
-      // Prefer larger images; upgrade to https
-      coverUrl = (info.imageLinks.thumbnail || info.imageLinks.smallThumbnail || null);
+      coverUrl = info.imageLinks.extraLarge
+        || info.imageLinks.large
+        || info.imageLinks.medium
+        || info.imageLinks.thumbnail
+        || info.imageLinks.smallThumbnail
+        || null;
       if (coverUrl) coverUrl = coverUrl.replace('http://', 'https://');
     }
     return { description, coverUrl };
@@ -40,51 +42,49 @@ async function fetchGoogleBooks(title, author) {
 }
 
 /**
- * Fetch author bio and fun facts from OpenAI.
- * Returns { authorBio, funFact1, funFact2 } or fallback strings.
+ * Fetch author bio and fun facts from Gemini.
  */
 async function fetchAuthorInfo(author) {
-  if (!OPENAI_API_KEY) {
+  if (!GEMINI_API_KEY) {
+    console.warn('[gemini] no GEMINI_API_KEY set');
     return { authorBio: null, funFact1: null, funFact2: null };
   }
   try {
-    const prompt = `In 2-3 friendly sentences, tell me about the author ${author} and their writing style. Then give me 2 fun facts about ${author} that a book lover would enjoy. Format: author_bio: [text] | fun_facts: [fact1] | [fact2]`;
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    const prompt = `In 2-3 warm, friendly sentences for a book lover, tell me about the author ${author} and their writing style. Then share 2 delightful fun facts about ${author} that any book lover would enjoy knowing. Reply in this exact format:\nauthor_bio: [your bio text here]\nfun_fact_1: [first fun fact]\nfun_fact_2: [second fun fact]`;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+    const res = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 400,
-        temperature: 0.7,
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: 400, temperature: 0.7 },
       }),
       timeout: 20000,
     });
     if (!res.ok) {
       const errText = await res.text();
-      console.warn('[openai] API error:', res.status, errText.substring(0, 200));
+      console.warn('[gemini] API error:', res.status, errText.substring(0, 200));
       return { authorBio: null, funFact1: null, funFact2: null };
     }
     const data = await res.json();
-    const text = data.choices?.[0]?.message?.content || '';
-    // Parse: author_bio: [...] | fun_facts: [...] | [...]
-    const bioMatch = text.match(/author_bio:\s*\[?(.+?)\]?\s*\|/i);
-    const factsMatch = text.match(/fun_facts:\s*\[?(.+?)\]?\s*\|\s*\[?(.+?)\]?\s*$/is);
-    const authorBio = bioMatch ? bioMatch[1].trim() : text.substring(0, 300);
-    const funFact1 = factsMatch ? factsMatch[1].trim() : null;
-    const funFact2 = factsMatch ? factsMatch[2].trim() : null;
-    return { authorBio, funFact1, funFact2 };
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const bioMatch = text.match(/author_bio:\s*\[?(.+?)\]?\s*\n/i);
+    const fact1Match = text.match(/fun_fact_1:\s*\[?(.+?)\]?\s*\n/i);
+    const fact2Match = text.match(/fun_fact_2:\s*\[?(.+?)\]?\s*/i);
+    return {
+      authorBio: bioMatch ? bioMatch[1].trim() : null,
+      funFact1: fact1Match ? fact1Match[1].trim() : null,
+      funFact2: fact2Match ? fact2Match[1].trim() : null,
+    };
   } catch (err) {
-    console.warn('[openai] fetch failed:', err.message);
+    console.warn('[gemini] fetch failed:', err.message);
     return { authorBio: null, funFact1: null, funFact2: null };
   }
 }
 
 /**
- * Full enrichment: Google Books + OpenAI author info.
+ * Full enrichment: Google Books + Gemini author info.
  */
 async function enrichBook(title, author) {
   const [bookInfo, authorInfo] = await Promise.all([
