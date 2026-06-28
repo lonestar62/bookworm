@@ -7,17 +7,13 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 async function fetchCover(title, author) {
   try {
-    const q = `intitle:${encodeURIComponent(title)}+inauthor:${encodeURIComponent(author)}`;
-    const res = await fetch(
-      `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1&fields=items/volumeInfo/imageLinks`,
-      { timeout: 8000 }
-    );
+    const q = `title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&limit=1&fields=cover_i`;
+    const res = await fetch(`https://openlibrary.org/search.json?${q}`, { timeout: 6000 });
     if (!res.ok) return null;
     const data = await res.json();
-    const links = data.items?.[0]?.volumeInfo?.imageLinks;
-    if (!links) return null;
-    const raw = links.extraLarge || links.large || links.medium || links.thumbnail || links.smallThumbnail || null;
-    return raw ? raw.replace('http://', 'https://') : null;
+    const coverId = data.docs?.[0]?.cover_i;
+    if (!coverId) return null;
+    return `https://covers.openlibrary.org/b/id/${coverId}-L.jpg`;
   } catch { return null; }
 }
 

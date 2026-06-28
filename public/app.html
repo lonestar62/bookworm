@@ -32,6 +32,7 @@
         <table class="grid-table" id="grid-table">
           <thead>
             <tr>
+              <th class="col-actions">Actions</th>
               <th class="col-cover">Cover</th>
               <th class="col-title">Title</th>
               <th class="col-author">Author</th>
@@ -452,10 +453,6 @@ function renderGrid(books) {
       <td class="td-text">${esc(book.fun_fact_2 || '')}</td>
       <td class="td-text">${esc(book.notes || '')}</td>
       <td class="td-date">${fmtDate(book.added_at)}</td>
-      <td class="td-actions">
-        <button class="btn-edit" onclick="openEdit(${book.id})">✏️ Edit</button>
-        <button class="btn-delete" onclick="deleteBook(${book.id}, '${esc(book.title)}')">🗑 Delete</button>
-      </td>
     `;
     tbody.appendChild(tr);
   });

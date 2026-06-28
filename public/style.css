@@ -154,14 +154,20 @@ body {
 .col-fact    { width: 180px; }
 .col-notes   { width: 180px; }
 .col-date    { width: 105px; }
-.col-actions { width: 140px; }
+.col-actions { width: 68px; }
 
 .td-cover { width: 80px; }
 .td-title { font-weight: 600; font-size: 1rem; }
 .td-author { font-style: italic; color: #4a3828; }
 .td-genre, .td-stars, .td-fin, .td-date { white-space: nowrap; }
 .td-date { color: #7a6a55; font-size: .88rem; }
-.td-actions { white-space: nowrap; }
+.td-actions {
+  white-space: nowrap;
+  width: 68px;
+  text-align: center;
+  vertical-align: middle !important;
+  padding: 8px 6px !important;
+}
 
 /* Text cells: scroll if very long */
 .td-text {
@@ -205,29 +211,24 @@ body {
 .genre-tag { background: #e8f4ec; color: #1e5c35; border: 1px solid #b5d9c3; border-radius: 20px; padding: 3px 11px; font-size: .85rem; font-weight: 600; white-space: nowrap; }
 
 /* Action buttons */
-.btn-edit {
-  background: #e8f0ff;
-  color: #1a3d8a;
-  border: 1px solid #b5c6f0;
-  border-radius: 7px;
-  padding: 5px 11px;
-  font-size: .85rem;
+.btn-edit, .btn-delete {
+  display: block;
+  width: 32px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid;
+  font-size: 1rem;
+  line-height: 1;
   cursor: pointer;
-  font-weight: 600;
-  margin-right: 6px;
+  margin: 3px auto;
+  text-align: center;
+  padding: 0;
+  background: none;
 }
-.btn-edit:hover { background: #d0dcf8; }
-.btn-delete {
-  background: #fef0f0;
-  color: #c0392b;
-  border: 1px solid #f5b8b8;
-  border-radius: 7px;
-  padding: 5px 11px;
-  font-size: .85rem;
-  cursor: pointer;
-  font-weight: 600;
-}
-.btn-delete:hover { background: #fad5d5; }
+.btn-edit   { border-color: #b5c6f0; color: #1a3d8a; background: #f0f5ff; }
+.btn-edit:hover   { background: #dce6fc; }
+.btn-delete { border-color: #f5b8b8; color: #c0392b; background: #fff4f4; }
+.btn-delete:hover { background: #fde0e0; }
 
 /* ═══════════════════════════════════════
    EMPTY STATE
