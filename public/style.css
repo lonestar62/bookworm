@@ -41,6 +41,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .td-text{max-width:200px;}
 .td-long{max-width:220px;max-height:140px;overflow-y:auto;}
 .td-stars{white-space:nowrap;}
+.td-text{white-space:normal;word-break:break-word;}
 .td-date{white-space:nowrap;color:#7a6a55;font-size:.85rem;}
 .cover-img{width:54px;height:72px;object-fit:cover;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.15);display:block;}
 .cover-ph{font-size:1.8rem;display:block;text-align:center;}
